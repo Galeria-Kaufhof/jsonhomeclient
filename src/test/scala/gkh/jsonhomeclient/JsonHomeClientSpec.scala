@@ -160,7 +160,7 @@ class JsonHomeClientSpec extends FunSpec with Matchers with BeforeAndAfterAll wi
 
   }
 
-  implicit val timeout = 1 second
+  implicit val timeout = 4 seconds
 
   private def await[T](future: Future[T])(implicit timeout: Duration): T = Await.result(future, timeout)
 

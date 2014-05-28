@@ -18,6 +18,8 @@ libraryDependencies ++= Seq(
 
 publishMavenStyle := true
 
+resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
+
 publishTo := Some("Peng Releases" at "http://nexus.gkh-setu.de/content/repositories/releases/")
 
 credentials += Credentials("Sonatype Nexus Repository Manager", "nexus.gkh-setu.de", "deployment", "deployment")
