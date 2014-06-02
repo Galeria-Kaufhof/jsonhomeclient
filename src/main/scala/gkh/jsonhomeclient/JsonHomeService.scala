@@ -1,6 +1,7 @@
 package gkh.jsonhomeclient
 
 import java.net.URLEncoder
+import com.damnhandy.uri.template.UriTemplate
 
 /**
  * The json-home service allows to resolve urls (href/href-template) for a given json-home host and a given
@@ -11,21 +12,22 @@ import java.net.URLEncoder
 class JsonHomeService(cachesByHost: Map[JsonHomeHost, JsonHomeCache]) {
 
   /**
-   * Determines the url (json-home "href") for the given json home host and the given direct link releation.
+   * Determines the url (json-home "href") for the given json home host and the given direct link relation.
    */
   def getUrl(host: JsonHomeHost, relation: DirectLinkRelationType): Option[String] = {
     cachesByHost.get(host).flatMap(_.getUrl(relation))
   }
 
   /**
-   * Determines the url (json-home "href-template") for the given json home host and the given template link releation.
+   * Determines the url (json-home "href-template") for the given json home host and the given template link relation.
    * The href template variables are replaced using the provided params.
    */
   def getUrl(host: JsonHomeHost, relation: TemplateLinkRelationType, params: Map[String, Any]): Option[String] = {
     cachesByHost.get(host).flatMap(_.getUrl(relation)).map { hrefTemplate =>
-      params.foldLeft(hrefTemplate)((res, param) => res.replaceAll("\\{" + param._1 + "\\}", URLEncoder.encode(param._2.toString, "UTF-8")))
+      params.foldLeft(UriTemplate.fromTemplate(hrefTemplate))((res, param) => res.set(param._1, param._2)).expand()
     }
   }
+
 }
 
 object JsonHomeService {

@@ -13,7 +13,8 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "2.1.0" % "test",
   "org.mockito" % "mockito-core" % "1.9.5" % "test",
   "com.typesafe.play" %% "play-test" % "2.2.3" % "test",
-  "com.typesafe.play" %% "play" % "2.2.3"
+  "com.typesafe.play" %% "play" % "2.2.3",
+  "com.damnhandy" % "handy-uri-templates" % "2.0.1"
 )
 
 publishMavenStyle := true
