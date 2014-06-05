@@ -50,7 +50,6 @@ class JsonHomeCacheSpec extends IntegrationSpec {
     TemplateLinkRelationType("http://spec.example.org/rels/artistWithOptionalParams")
   ))
   private val client = new JsonHomeClient(server)
-  //implicit val timeout = 4 seconds
   private var actorSystem: ActorSystem = _
   private var jsonHomeCache: JsonHomeCache = _
   private var httpServer: HttpServer = _
@@ -60,9 +59,6 @@ class JsonHomeCacheSpec extends IntegrationSpec {
   describe("JsonHomeCache") {
 
     import org.scalatest.concurrent.Eventually._
-
-    // increase timeout for slow build servers...
-    //implicit val patienceConfig = PatienceConfig(timeout = scaled(Span(2000, Millis)))
 
     it("should return Some(link) for href from jsonHomeCache") {
       jsonHomeCache.getUrl(DirectLinkRelationType("http://spec.example.org/rels/artists")) should be(Some("/artists"))
