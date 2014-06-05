@@ -15,15 +15,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
  */
 class JsonHomeClient(val host: JsonHomeHost) {
 
-  import JsonHomeOperations._
-
-  def getUrl(linkRelation: LinkRelationType): Future[Option[String]] = {
-    jsonHome().map(json => getLinkUrl(json, linkRelation))
-  }
-
   private[jsonhomeclient] def jsonHome(): Future[JsValue] = {
     WS.url(host.jsonHomeUri.toString)
       .withHeaders("Accept" -> "application/json-home").get().map(_.json)
   }
+
 }
 

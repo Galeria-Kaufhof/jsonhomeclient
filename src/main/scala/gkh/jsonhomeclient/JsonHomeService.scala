@@ -1,6 +1,5 @@
 package gkh.jsonhomeclient
 
-import java.net.URLEncoder
 import com.damnhandy.uri.template.UriTemplate
 
 /**
@@ -34,7 +33,7 @@ object JsonHomeService {
 
   def apply(caches: Seq[JsonHomeCache]): JsonHomeService = {
     val cachesByHost = caches.foldLeft(Map.empty[JsonHomeHost, JsonHomeCache]) { (res, cache) =>
-      res + (cache.server -> cache)
+      res + (cache.host -> cache)
     }
     new JsonHomeService(cachesByHost)
   }

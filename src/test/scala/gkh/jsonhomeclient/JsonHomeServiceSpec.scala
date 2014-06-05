@@ -1,11 +1,10 @@
 package gkh.jsonhomeclient
 
-import org.scalatest.{Matchers, FunSpec}
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.Matchers
 import org.mockito.Mockito._
 import org.mockito.Matchers._
 
-class JsonHomeServiceSpec extends FunSpec with Matchers with MockitoSugar {
+class JsonHomeServiceSpec extends UnitSpec {
 
   val server1 = JsonHomeHost("http://host1", Nil)
   val server2 = JsonHomeHost("http://host2", Nil)
@@ -47,7 +46,7 @@ class JsonHomeServiceSpec extends FunSpec with Matchers with MockitoSugar {
 
   private def mockCache(server: JsonHomeHost, getUrlResult: Option[String]): JsonHomeCache = {
     val res = mock[JsonHomeCache]
-    when(res.server).thenReturn(server)
+    when(res.host).thenReturn(server)
     when(res.getUrl(any[LinkRelationType]())).thenReturn(getUrlResult)
     res
   }
