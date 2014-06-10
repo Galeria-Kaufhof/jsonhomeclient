@@ -18,8 +18,9 @@ object JsonHomeHost {
 
   val jsonHomePath = "/.well-known/home"
 
-  def apply(hostURL: String, rels: Seq[LinkRelationType]): JsonHomeHost = {
+  def apply(hostURL: String, rels: Seq[LinkRelationType], jsonHomeBasePath: String = ""): JsonHomeHost = {
     val uri = new URI(hostURL)
-    JsonHomeHost(uri, uri.resolve(jsonHomePath), rels)
+    JsonHomeHost(uri, uri.resolve(jsonHomeBasePath + jsonHomePath), rels)
   }
+
 }
