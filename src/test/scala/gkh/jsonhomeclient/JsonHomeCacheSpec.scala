@@ -82,7 +82,7 @@ class JsonHomeCacheSpec extends IntegrationSpec {
 
     it("should continuously reload json-home") {
       val relAlbums = DirectLinkRelationType("http://spec.example.org/rels/albums")
-      val server = JsonHomeHost("http://localhost:8000/home", Seq(DirectLinkRelationType("http://spec.example.org/rels/artists"), relAlbums))
+      val server = JsonHomeHost("http://localhost:8000", Seq(DirectLinkRelationType("http://spec.example.org/rels/artists"), relAlbums))
       val client = new JsonHomeClient(server)
       val cache = new JsonHomeCache(client, actorSystem, 20 milliseconds)
 
