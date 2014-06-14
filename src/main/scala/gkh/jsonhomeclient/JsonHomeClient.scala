@@ -3,9 +3,10 @@ package gkh.jsonhomeclient
 import scala.language.postfixOps
 
 import play.api.libs.json.JsValue
-import play.api.libs.ws.WS
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import play.api.libs.ws._
+import play.api.Play.current
 
 /**
  * The client to load a json-home document and extract relevant information.
