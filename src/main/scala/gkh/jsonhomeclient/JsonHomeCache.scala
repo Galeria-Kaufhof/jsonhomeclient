@@ -16,7 +16,7 @@ import play.api.Logger
  *
  * @author <a href="mailto:martin.grotzke@inoio.de">Martin Grotzke</a>
  */
-class JsonHomeCache(client: JsonHomeClient, system: ActorSystem, updateInterval: FiniteDuration = 1 minute) {
+class JsonHomeCache(client: JsonHomeClient, system: ActorSystem, updateInterval: FiniteDuration = 30 minutes) {
 
   private val relsToUrls = new AtomicReference[Map[LinkRelationType, String]](Map.empty)
 
