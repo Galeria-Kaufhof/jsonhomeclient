@@ -53,7 +53,7 @@ class JsonHomeCache(client: JsonHomeClient, system: ActorSystem, updateInterval:
   def getUrl(rel: LinkRelationType): Option[String] = {
     if (relsToUrls.get().isEmpty) {
       // eagerly load data from client if not here yet due to async loading from scheduler
-      buildAndSetLinkRelationTypeMap(Await.result(client.jsonHome(), 2 seconds))
+      buildAndSetLinkRelationTypeMap(Await.result(client.jsonHome(), 10 seconds))
     }
 
     relsToUrls.get().get(rel)
