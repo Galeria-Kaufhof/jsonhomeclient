@@ -75,9 +75,7 @@ class JsonHomeCacheSpec extends IntegrationSpec {
     it("should return None when json home not found from jsonHomeCache") {
       val server = JsonHomeHost("http://localhost:8001/this_server_and_doc_does_not_exist", Seq())
       val cache = new JsonHomeCache(new JsonHomeClient(server), actorSystem)
-      intercept[ConnectException] {
-        cache.getUrl(DirectLinkRelationType("http://spec.example.org/rels/artists"))
-      }
+      cache.getUrl(DirectLinkRelationType("http://spec.example.org/rels/artists")) should be (None)
     }
 
     it("should continuously reload json-home") {

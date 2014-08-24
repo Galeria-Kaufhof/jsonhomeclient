@@ -3,7 +3,8 @@ package gkh.jsonhomeclient
 import scala.language.postfixOps
 import scala.concurrent.ExecutionContext.Implicits.global
 import akka.actor.ActorSystem
-import scala.util.{Failure, Success}
+import scala.util.control.NonFatal
+import scala.util.{Try, Failure, Success}
 import java.util.concurrent.atomic.AtomicReference
 import scala.concurrent.duration._
 import play.api.libs.json.JsValue
@@ -18,12 +19,22 @@ import play.api.Logger
  */
 class JsonHomeCache(client: JsonHomeClient, system: ActorSystem, updateInterval: FiniteDuration = 30 minutes) {
 
-  private val relsToUrls = new AtomicReference[Map[LinkRelationType, String]](Map.empty)
+  @volatile
+  private var relsToUrls: Option[Map[LinkRelationType, String]] = None
 
   system.scheduler.schedule(0 seconds, updateInterval) {
     client.jsonHome().onComplete {
       case Success(jsonHome) => buildAndSetLinkRelationTypeMap(jsonHome)
-      case Failure(t) => Logger.warn(s"An error has occured while loading json home: $t")
+      case Failure(t) => onFailure(t)
+    }
+  }
+
+  private def onFailure(t: Throwable): Unit = {
+    Logger.warn(s"An error has occured while loading json home from ${client.host}: $t")
+    // Set to some empty map so that getUrl does not always block for 10 seconds! This would lead to
+    // a request time > 10 sec for each request.
+    if(relsToUrls.isEmpty) {
+      relsToUrls = Some(Map.empty)
     }
   }
 
@@ -35,9 +46,9 @@ class JsonHomeCache(client: JsonHomeClient, system: ActorSystem, updateInterval:
         case None => res
       }
     }
-    if (map != relsToUrls) {
+    if (relsToUrls.isEmpty || map != relsToUrls.get) {
       Logger.debug(s"Setting rel->url map: $map")
-      relsToUrls.set(map)
+      relsToUrls = Some(map)
     }
   }
 
@@ -51,12 +62,13 @@ class JsonHomeCache(client: JsonHomeClient, system: ActorSystem, updateInterval:
   def host: JsonHomeHost = client.host
 
   def getUrl(rel: LinkRelationType): Option[String] = {
-    if (relsToUrls.get().isEmpty) {
+    if (relsToUrls.isEmpty) {
       // eagerly load data from client if not here yet due to async loading from scheduler
-      buildAndSetLinkRelationTypeMap(Await.result(client.jsonHome(), 10 seconds))
+      Try(buildAndSetLinkRelationTypeMap(Await.result(client.jsonHome(), 10 seconds))).recover {
+        case NonFatal(e) => onFailure(e)
+      }
     }
-
-    relsToUrls.get().get(rel)
+    relsToUrls.flatMap(_.get(rel))
   }
 
 }
