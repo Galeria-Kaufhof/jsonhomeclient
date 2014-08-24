@@ -5,7 +5,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import akka.actor.ActorSystem
 import scala.util.control.NonFatal
 import scala.util.{Try, Failure, Success}
-import java.util.concurrent.atomic.AtomicReference
 import scala.concurrent.duration._
 import play.api.libs.json.JsValue
 import scala.concurrent.Await
@@ -17,7 +16,8 @@ import play.api.Logger
  *
  * @author <a href="mailto:martin.grotzke@inoio.de">Martin Grotzke</a>
  */
-class JsonHomeCache(client: JsonHomeClient, system: ActorSystem, updateInterval: FiniteDuration = 30 minutes) {
+class JsonHomeCache(client: JsonHomeClient, system: ActorSystem, updateInterval: FiniteDuration = 30 minutes,
+                    initialTimeToWait: FiniteDuration = 10 seconds) {
 
   @volatile
   private var relsToUrls: Option[Map[LinkRelationType, String]] = None
@@ -64,7 +64,7 @@ class JsonHomeCache(client: JsonHomeClient, system: ActorSystem, updateInterval:
   def getUrl(rel: LinkRelationType): Option[String] = {
     if (relsToUrls.isEmpty) {
       // eagerly load data from client if not here yet due to async loading from scheduler
-      Try(buildAndSetLinkRelationTypeMap(Await.result(client.jsonHome(), 10 seconds))).recover {
+      Try(buildAndSetLinkRelationTypeMap(Await.result(client.jsonHome(), initialTimeToWait))).recover {
         case NonFatal(e) => onFailure(e)
       }
     }
