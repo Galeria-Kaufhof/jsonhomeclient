@@ -19,6 +19,8 @@ import play.api.Logger
 class JsonHomeCache(client: JsonHomeClient, system: ActorSystem, updateInterval: FiniteDuration = 30 minutes,
                     initialTimeToWait: FiniteDuration = 10 seconds) {
 
+  private val log = Logger(getClass)
+
   @volatile
   private var relsToUrls: Option[Map[LinkRelationType, String]] = None
 
@@ -30,7 +32,7 @@ class JsonHomeCache(client: JsonHomeClient, system: ActorSystem, updateInterval:
   }
 
   private def onFailure(t: Throwable): Unit = {
-    Logger.warn(s"An error has occured while loading json home from ${client.host}: $t")
+    log.warn(s"An error has occured while loading json home from ${client.host}: $t")
     // Set to some empty map so that getUrl does not always block for 10 seconds! This would lead to
     // a request time > 10 sec for each request.
     if(relsToUrls.isEmpty) {
@@ -39,7 +41,7 @@ class JsonHomeCache(client: JsonHomeClient, system: ActorSystem, updateInterval:
   }
 
   private def buildAndSetLinkRelationTypeMap(jsonHome: JsValue) {
-    Logger.debug(s"Got json home from ${client.host.jsonHomeUri}: $jsonHome}")
+    log.debug(s"Got json home from ${client.host.jsonHomeUri}: $jsonHome}")
     val map = client.host.rels.foldLeft(Map.empty[LinkRelationType, String]) { (res, rel) =>
       getLinkUrl(jsonHome, rel) match {
         case Some(url) => res + (rel -> url)
@@ -47,7 +49,7 @@ class JsonHomeCache(client: JsonHomeClient, system: ActorSystem, updateInterval:
       }
     }
     if (relsToUrls.isEmpty || map != relsToUrls.get) {
-      Logger.debug(s"Setting rel->url map: $map")
+      log.debug(s"Setting rel->url map: $map")
       relsToUrls = Some(map)
     }
   }
