@@ -24,7 +24,7 @@ import com.damnhandy.uri.template.UriTemplate
  *
  * @author <a href="mailto:martin.grotzke@inoio.de">Martin Grotzke</a>
  */
-class JsonHomeService(cachesByHost: Map[JsonHomeHost, JsonHomeCache]) {
+case class JsonHomeService(cachesByHost: Map[JsonHomeHost, JsonHomeCache]) {
 
   /**
    * Determines the url (json-home "href") for the given json home host and the given direct link relation.
