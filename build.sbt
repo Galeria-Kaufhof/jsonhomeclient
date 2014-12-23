@@ -26,3 +26,5 @@ resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/release
 publishTo := Some("Peng Releases" at "http://nexus.gkh-setu.de/content/repositories/releases/")
 
 credentials += Credentials("Sonatype Nexus Repository Manager", "nexus.gkh-setu.de", "deployment", "deployment")
+
+net.virtualvoid.sbt.graph.Plugin.graphSettings
