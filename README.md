@@ -8,14 +8,14 @@ No-magic Scala client to consume [JSON home documents](http://tools.ietf.org/htm
 {
   "resources": {
     "http://spec.example.org/rels/artists": {
-	     "href": "/artists"
-	   },
+      "href": "/artists"
+    },
     "http://spec.example.org/rels/artist": {
-	     "href-template": "/artists/{artist-id}",
+	  "href-template": "/artists/{artist-id}",
       "href-vars": {
         "artist-id": "http://spec.example.org/params/artist"
       }
-	  }
+	}
   }
 }
 ```
