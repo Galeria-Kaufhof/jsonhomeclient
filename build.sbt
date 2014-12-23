@@ -1,9 +1,15 @@
 
-organization := "gkh.jsonhomeclient"
+name := "json-home-client"
 
-name := """jsonhomeclient"""
+description := "Scala client to consume JSON home documents"
+
+organization := "de.kaufhof"
 
 version := Option(System.getProperty("version")) getOrElse "0.1.0-SNAPSHOT"
+
+licenses := Seq("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0.html"))
+
+homepage := Some(url("https://github.com/Galeria-Kaufhof/jsonhomeclient"))
 
 scalaVersion := "2.11.1"
 
@@ -19,12 +25,49 @@ libraryDependencies ++= Seq(
   "com.damnhandy" % "handy-uri-templates" % "2.0.1"
 )
 
-publishMavenStyle := true
-
 resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
 
-publishTo := Some("Peng Releases" at "http://nexus.gkh-setu.de/content/repositories/releases/")
-
-credentials += Credentials("Sonatype Nexus Repository Manager", "nexus.gkh-setu.de", "deployment", "deployment")
-
 net.virtualvoid.sbt.graph.Plugin.graphSettings
+
+// Publish settings
+publishTo := {
+  val nexus = "https://oss.sonatype.org/"
+  if (isSnapshot.value)
+    Some("snapshots" at nexus + "content/repositories/snapshots")
+  else
+    Some("releases" at nexus + "service/local/staging/deploy/maven2")
+}
+
+publishMavenStyle := true
+
+publishArtifact in Test := false
+
+pomIncludeRepository := { _ => false }
+
+pomExtra := (
+  <scm>
+    <url>git@github.com:Galeria-Kaufhof/jsonhomeclient.git</url>
+    <connection>scm:git:git@github.com:Galeria-Kaufhof/jsonhomeclient.git</connection>
+  </scm>
+    <developers>
+      <developer>
+        <id>martin.grotzke</id>
+        <name>Martin Grotzke</name>
+        <url>https://github.com/magro</url>
+      </developer>
+      <developer>
+        <id>manuel.kiessling</id>
+        <name>Manuel Kiessling</name>
+        <url>https://github.com/manuelkiessling</url>
+      </developer>
+      <developer>
+        <id>fabian.koehler</id>
+        <name>Fabian Koehler</name>
+        <url>https://github.com/fkoehler</url>
+      </developer>
+      <developer>
+        <id>markus.klink</id>
+        <name>Markus Klink</name>
+        <url>https://github.com/justjoheinz</url>
+      </developer>
+    </developers>)
