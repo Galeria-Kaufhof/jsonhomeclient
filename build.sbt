@@ -5,7 +5,7 @@ description := "Scala client to consume JSON home documents"
 
 organization := "de.kaufhof"
 
-version := "1.0.0-SNAPSHOT"
+version := "1.0.0-RC1"
 
 licenses := Seq("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0.html"))
 
