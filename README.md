@@ -51,8 +51,12 @@ val host1 = JsonHomeHost("http://some.host", Seq(
   // A link relation with template params
   TemplateLinkRelationType("http://spec.example.org/rels/artist")
 ))
-// Create the client, it loads the json home doc from the host
-val client1 = new JsonHomeClient(host1)
+
+// Create the client, it loads the json home doc from the host (using Play's WSClient for http)
+// In a non-Play app, the WSClient can be created via `new NingWSClient(new AsyncHttpClientConfig.Builder().build())`,
+// in this setup you should also `close()` the WSClient when the app is stopped.
+val client1 = new JsonHomeClient(host1, WS.client)
+
 // Create the cache, it will regularly (using the Akka scheduler) load json home doc
 // using the client. The initialTimeToWait is used for requests when the schedule did not yet
 // kick in (might happen e.g. in tests) so that the json home doc was not yet requested/loaded.
