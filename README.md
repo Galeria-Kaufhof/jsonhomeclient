@@ -31,7 +31,7 @@ and [Play's JSON library](https://www.playframework.com/documentation/2.3.x/Scal
 
 You must add the jsonhomeclient to the dependencies of the build file, e.g. add to `build.sbt`:
 
-    libraryDependencies += "de.kaufhof" %% "jsonhomeclient" % "1.19"
+    libraryDependencies += "de.kaufhof" %% "jsonhomeclient" % "1.0.0-SNAPSHOT"
 
 It is published to maven central for both scala 2.10 and 2.11.
 
