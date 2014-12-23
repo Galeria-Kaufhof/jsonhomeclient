@@ -1,16 +1,16 @@
 package gkh.jsonhomeclient
 
+import com.ning.http.client.AsyncHttpClientConfig
+import play.api.libs.ws.ning.NingWSClient
+
 import scala.language.postfixOps
 
 import org.scalatest.ConfigMap
 import play.api.libs.json.Json
 import com.sun.net.httpserver.{HttpServer, HttpExchange, HttpHandler}
-import java.net.{ConnectException, InetSocketAddress}
+import java.net.InetSocketAddress
 import scala.concurrent.duration._
 import akka.actor.ActorSystem
-import play.api.{Play, GlobalSettings}
-import play.api.test.FakeApplication
-import play.api.libs.concurrent.Akka
 
 class JsonHomeCacheSpec extends IntegrationSpec {
 
@@ -49,12 +49,11 @@ class JsonHomeCacheSpec extends IntegrationSpec {
     TemplateLinkRelationType("http://spec.example.org/rels/artist"),
     TemplateLinkRelationType("http://spec.example.org/rels/artistWithOptionalParams")
   ))
-  private val client = new JsonHomeClient(server)
-  private var actorSystem: ActorSystem = _
-  private var jsonHomeCache: JsonHomeCache = _
+  private lazy val wsClient = new NingWSClient(new AsyncHttpClientConfig.Builder().build())
+  private lazy val client = new JsonHomeClient(server, wsClient)
+  private lazy val actorSystem = ActorSystem(getClass.getSimpleName)
+  private lazy val jsonHomeCache = new JsonHomeCache(client, actorSystem)
   private var httpServer: HttpServer = _
-
-  object TestGlobal extends GlobalSettings
 
   describe("JsonHomeCache") {
 
@@ -74,14 +73,14 @@ class JsonHomeCacheSpec extends IntegrationSpec {
 
     it("should return None when json home not found from jsonHomeCache") {
       val server = JsonHomeHost("http://localhost:8001/this_server_and_doc_does_not_exist", Seq())
-      val cache = new JsonHomeCache(new JsonHomeClient(server), actorSystem)
+      val cache = new JsonHomeCache(new JsonHomeClient(server, wsClient), actorSystem)
       cache.getUrl(DirectLinkRelationType("http://spec.example.org/rels/artists")) should be (None)
     }
 
     it("should continuously reload json-home") {
       val relAlbums = DirectLinkRelationType("http://spec.example.org/rels/albums")
       val server = JsonHomeHost("http://localhost:8000", Seq(DirectLinkRelationType("http://spec.example.org/rels/artists"), relAlbums))
-      val client = new JsonHomeClient(server)
+      val client = new JsonHomeClient(server, wsClient)
       val cache = new JsonHomeCache(client, actorSystem, 20 milliseconds)
 
       eventually {
@@ -113,15 +112,9 @@ class JsonHomeCacheSpec extends IntegrationSpec {
 
   override def beforeAll(configMap: ConfigMap) {
     httpServer = startServer(8000, JsonHomeHost.jsonHomePath)
-    implicit val app = FakeApplication(withGlobal = Some(TestGlobal))
-    Play.start(app)
-
-    actorSystem = Akka.system
-    jsonHomeCache = new JsonHomeCache(client, actorSystem)
   }
 
   override def afterAll(configMap: ConfigMap) {
-    Play.stop()
     httpServer.stop(0)
   }
 
@@ -138,8 +131,8 @@ class JsonHomeCacheSpec extends IntegrationSpec {
       val response = json.toString()
       t.getResponseHeaders.add("Content-Type", "application/json-home")
       t.sendResponseHeaders(200, response.length())
-      val os = t.getResponseBody()
-      os.write(response.getBytes())
+      val os = t.getResponseBody
+      os.write(response.getBytes)
       os.close()
     }
   }

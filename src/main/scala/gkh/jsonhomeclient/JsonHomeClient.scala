@@ -22,18 +22,25 @@ import play.api.libs.json.JsValue
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.libs.ws._
-import play.api.Play.current
 
 /**
  * The client to load a json-home document and extract relevant information.
  * A client is responsible for a specific json-home host.
  *
+ * @param host the json home host to load the home document from
+ * @param ws the WSClient to use for loading the home document.
+ *           In a Play 2.3.x application it can be created via `WS.client`,
+ *           in other apps it can be created via
+ *           `new NingWSClient(new AsyncHttpClientConfig.Builder().build())` (remember
+ *           to `close()` the client when the application is stopped).
+ *
  * @author <a href="mailto:martin.grotzke@inoio.de">Martin Grotzke</a>
  */
-class JsonHomeClient(val host: JsonHomeHost) {
+class JsonHomeClient(val host: JsonHomeHost,
+                     val ws: WSClient) {
 
   private[jsonhomeclient] def jsonHome(): Future[JsValue] = {
-    WS.url(host.jsonHomeUri.toString)
+    ws.url(host.jsonHomeUri.toString)
       .withHeaders("Accept" -> "application/json-home").get().map(_.json)
   }
 
