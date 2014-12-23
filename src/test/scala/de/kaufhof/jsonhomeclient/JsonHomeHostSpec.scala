@@ -1,4 +1,4 @@
-package gkh.jsonhomeclient
+package de.kaufhof.jsonhomeclient
 
 import java.net.URI
 

@@ -1,4 +1,4 @@
-package gkh.jsonhomeclient
+package de.kaufhof.jsonhomeclient
 
 import com.ning.http.client.AsyncHttpClientConfig
 import play.api.libs.ws.ning.NingWSClient

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package gkh.jsonhomeclient
+package de.kaufhof.jsonhomeclient
 
 import scala.language.postfixOps
 import scala.concurrent.ExecutionContext.Implicits.global

@@ -31,7 +31,7 @@ and [Play's JSON library](https://www.playframework.com/documentation/2.3.x/Scal
 
 You must add the jsonhomeclient to the dependencies of the build file, e.g. add to `build.sbt`:
 
-    libraryDependencies += "gkh.jsonhomeclient" %% "jsonhomeclient" % "1.19"
+    libraryDependencies += "de.kaufhof" %% "jsonhomeclient" % "1.19"
 
 It is published to maven central for both scala 2.10 and 2.11.
 
@@ -41,6 +41,8 @@ At first you setup the `JsonHomeService` for various hosts that provide json hom
 The first host serves a json home like the one shown above.
 
 ```scala
+import de.kaufhof.jsonhomeclient._
+
 // Specify which service/host provides which link relations
 // By default, json home docs are assumed to be served from `/.well-known/home`.
 val host1 = JsonHomeHost("http://some.host", Seq(

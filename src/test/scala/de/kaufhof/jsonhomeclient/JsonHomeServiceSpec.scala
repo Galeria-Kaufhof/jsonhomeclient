@@ -1,4 +1,4 @@
-package gkh.jsonhomeclient
+package de.kaufhof.jsonhomeclient
 
 import org.scalatest.Matchers
 import org.mockito.Mockito._
