@@ -52,13 +52,30 @@ case class JsonHomeService(cachesByHost: Map[JsonHomeHost, JsonHomeCache]) {
 
 object JsonHomeService {
 
+  sealed trait SystemFlag
+  trait WithSystem extends SystemFlag
+  trait WithoutSystem extends SystemFlag
 
-  sealed trait CheckedFlag
-  trait Checked extends CheckedFlag
-  trait Unchecked extends CheckedFlag
+  sealed trait HostFlag
+  trait WithHost extends HostFlag
+  trait WithoutHost extends HostFlag
+
+  sealed trait WSClientFlag
+  trait WithWSClient extends WSClientFlag
+  trait WithoutWSClient extends WSClientFlag
+
+  sealed trait UpdateIntervalFlag
+  trait WithUpdateInterval extends UpdateIntervalFlag
+  trait WithoutUpdateInterval extends UpdateIntervalFlag
+
+  sealed trait StartDelayFlag
+  trait WithStartDelay extends StartDelayFlag
+  trait WithoutStartDelay extends StartDelayFlag
+
+
 
   object JsonHomeServiceBuilder{
-    implicit def enableBuild(builder: JsonHomeServiceBuilder[Checked, Checked, Checked, Checked, Checked]): {def build():JsonHomeService} = new {
+    implicit def enableCachedClientBuild(builder: JsonHomeServiceBuilder[WithHost, WithWSClient, WithSystem, WithUpdateInterval, WithStartDelay]): {def build():JsonHomeService} = new {
       def build(): JsonHomeService = {
         val caches = for{
           host <- builder.hosts
@@ -75,7 +92,7 @@ object JsonHomeService {
       }
     }
 
-    implicit def enableBuildWithDefaultStartDelay(builder: JsonHomeServiceBuilder[Checked, Checked, Checked, Checked, Unchecked]): {def build():JsonHomeService} = new {
+    implicit def enableBuildWithDefaultStartDelay(builder: JsonHomeServiceBuilder[WithHost, WithWSClient, WithSystem, WithUpdateInterval, WithoutStartDelay]): {def build():JsonHomeService} = new {
       def build(): JsonHomeService = {
         val caches = for{
           host <- builder.hosts
@@ -91,7 +108,7 @@ object JsonHomeService {
       }
     }
 
-    implicit def enableBuildWithDefaultUpdateInterval(builder: JsonHomeServiceBuilder[Checked, Checked, Checked, Unchecked, Checked]): {def build():JsonHomeService} = new {
+    implicit def enableBuildWithDefaultUpdateInterval(builder: JsonHomeServiceBuilder[WithHost, WithWSClient, WithSystem, WithoutUpdateInterval, WithStartDelay]): {def build():JsonHomeService} = new {
       def build(): JsonHomeService = {
         val caches = for{
           host <- builder.hosts
@@ -107,7 +124,7 @@ object JsonHomeService {
       }
     }
 
-    implicit def enableBuildWithDefaultDurations(builder: JsonHomeServiceBuilder[Checked, Checked, Checked, Unchecked, Unchecked]): {def build():JsonHomeService} = new {
+    implicit def enableBuildWithDefaultDurations(builder: JsonHomeServiceBuilder[WithHost, WithWSClient, WithSystem, WithoutUpdateInterval, WithoutStartDelay]): {def build():JsonHomeService} = new {
       def build(): JsonHomeService = {
         val caches = for{
           host <- builder.hosts
@@ -123,7 +140,7 @@ object JsonHomeService {
     }
   }
 
-  case class JsonHomeServiceBuilder[HostFlag, ClientFlag, SystemFlag, UpdateIntervalFlag, StartDelayFlag] private[jsonhomeclient](
+  case class JsonHomeServiceBuilder[HF <: HostFlag, CF <: WSClientFlag, SF <: SystemFlag, UF <: UpdateIntervalFlag, SDF <: StartDelayFlag] private[jsonhomeclient](
                                      hosts: List[JsonHomeHost] = Nil,
                                      wsClient: Option[WSClient] = None,
                                      system: Option[ActorSystem] = None,
@@ -132,21 +149,21 @@ object JsonHomeService {
 
     def addHost(url: String, rels: LinkRelationType*) = {
       val host = JsonHomeHost(url, rels)
-      this.copy[Checked, ClientFlag, SystemFlag, UpdateIntervalFlag, StartDelayFlag](hosts = host :: hosts)
+      this.copy[WithHost, CF, SF, UF, SDF](hosts = host :: hosts)
     }
 
-    def withWSClient(client: WSClient) = this.copy[HostFlag, Checked, SystemFlag, UpdateIntervalFlag, StartDelayFlag](wsClient = Some(client))
+    def withWSClient(client: WSClient) = this.copy[HF, WithWSClient, SF, UF, SDF](wsClient = Some(client))
 
-    def withStartDelay(delay: FiniteDuration) = this.copy[HostFlag, ClientFlag, SystemFlag, UpdateIntervalFlag, Checked](startDelay = Some(delay))
+    def withStartDelay(delay: FiniteDuration) = this.copy[HF, CF, SF, UF, WithStartDelay](startDelay = Some(delay))
 
-    def withCaching(system: ActorSystem) = this.copy[HostFlag, ClientFlag, Checked, UpdateIntervalFlag, StartDelayFlag](system = Some(system))
+    def withCaching(system: ActorSystem) = this.copy[HF, CF, WithSystem, UF, SDF](system = Some(system))
 
-    def withUpdateInterval(updateInterval: FiniteDuration) = this.copy[HostFlag, ClientFlag, SystemFlag, Checked, StartDelayFlag](updateInterval = Some(updateInterval))
+    def withUpdateInterval(updateInterval: FiniteDuration) = this.copy[HF, CF, SF, WithUpdateInterval, SDF](updateInterval = Some(updateInterval))
 
   }
 
   object Builder {
-    def apply(): JsonHomeServiceBuilder[Unchecked, Unchecked, Unchecked, Unchecked, Unchecked] = JsonHomeServiceBuilder()
+    def apply(): JsonHomeServiceBuilder[WithoutHost, WithoutWSClient, WithoutSystem, WithoutUpdateInterval, WithoutStartDelay] = JsonHomeServiceBuilder()
   }
 
   def apply(caches: Seq[JsonHomeCache]): JsonHomeService = {
