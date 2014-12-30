@@ -60,6 +60,9 @@ object JsonHomeService {
   trait WithHost extends HostFlag
   trait WithoutHost extends HostFlag
 
+
+
+
   sealed trait WSClientFlag
   trait WithWSClient extends WSClientFlag
   trait WithoutWSClient extends WSClientFlag
@@ -75,7 +78,7 @@ object JsonHomeService {
 
 
   object JsonHomeServiceBuilder{
-    implicit def enableCachedClientBuild(builder: JsonHomeServiceBuilder[WithHost, WithWSClient, WithSystem, WithUpdateInterval, WithStartDelay]): {def build():JsonHomeService} = new {
+    implicit def enableCachedClientBuild[A <: WithWSClient, B <: WithSystem, C <: WithUpdateInterval, D <: WithStartDelay, H >: HostsExist[A, B, C, D]](builder: Builder[A, B, C, D] with H): {def build():JsonHomeService} = new {
       def build(): JsonHomeService = {
         val caches = for{
           host <- builder.hosts
@@ -92,7 +95,7 @@ object JsonHomeService {
       }
     }
 
-    implicit def enableBuildWithDefaultStartDelay(builder: JsonHomeServiceBuilder[WithHost, WithWSClient, WithSystem, WithUpdateInterval, WithoutStartDelay]): {def build():JsonHomeService} = new {
+    implicit def enableBuildWithDefaultStartDelay[A <: WithWSClient, B <: WithSystem, C <: WithUpdateInterval, D <: WithoutStartDelay, H >: HostsExist[A, B, C, D]](builder: Builder[A, B, C, D] with H): {def build():JsonHomeService} = new {
       def build(): JsonHomeService = {
         val caches = for{
           host <- builder.hosts
@@ -108,7 +111,7 @@ object JsonHomeService {
       }
     }
 
-    implicit def enableBuildWithDefaultUpdateInterval(builder: JsonHomeServiceBuilder[WithHost, WithWSClient, WithSystem, WithoutUpdateInterval, WithStartDelay]): {def build():JsonHomeService} = new {
+    implicit def enableBuildWithDefaultUpdateInterval[A <: WithWSClient, B <: WithSystem, C <: WithoutUpdateInterval, D <: WithStartDelay, H >: HostsExist[A, B, C, D]](builder: Builder[A, B, C, D] with H): {def build():JsonHomeService} = new {
       def build(): JsonHomeService = {
         val caches = for{
           host <- builder.hosts
@@ -124,7 +127,7 @@ object JsonHomeService {
       }
     }
 
-    implicit def enableBuildWithDefaultDurations(builder: JsonHomeServiceBuilder[WithHost, WithWSClient, WithSystem, WithoutUpdateInterval, WithoutStartDelay]): {def build():JsonHomeService} = new {
+    implicit def enableBuildWithDefaultDurations[A <: WithWSClient, B <: WithSystem, C <: WithoutUpdateInterval, D <: WithoutStartDelay, H >: HostsExist[A, B, C, D]](builder: Builder[A, B, C, D] with H): {def build():JsonHomeService} = new {
       def build(): JsonHomeService = {
         val caches = for{
           host <- builder.hosts
@@ -138,32 +141,106 @@ object JsonHomeService {
         JsonHomeService(caches)
       }
     }
+
+    implicit def enableAsyncClientBuild[A <: WithWSClient, B <: WithoutSystem, C <: WithoutUpdateInterval, D <: WithoutStartDelay](builder: Builder[A, B, C, D] with OneHost[A, B, C, D]): {def build():JsonHomeClient} = new {
+      def build(): JsonHomeClient = {
+        new JsonHomeClient(builder.hosts.head, builder.wsClient.get)
+      }
+    }
   }
 
-  case class JsonHomeServiceBuilder[HF <: HostFlag, CF <: WSClientFlag, SF <: SystemFlag, UF <: UpdateIntervalFlag, SDF <: StartDelayFlag] private[jsonhomeclient](
+  trait Builder[CF <: WSClientFlag, SF <: SystemFlag, UF <: UpdateIntervalFlag, SDF <: StartDelayFlag]{
+    def hosts: List[JsonHomeHost]
+    def wsClient: Option[WSClient]
+    def system: Option[ActorSystem]
+    def updateInterval: Option[FiniteDuration]
+    def startDelay: Option[FiniteDuration]
+
+    def withWSClient(client: WSClient): Builder[WithWSClient, SF, UF, SDF] with HostHandling[WithWSClient, SF, UF, SDF]
+    def withStartDelay(delay: FiniteDuration): Builder[CF, SF, UF, WithStartDelay] with HostHandling[CF, SF, UF, WithStartDelay]
+    def withUpdateInterval(updateInterval: FiniteDuration): Builder[CF, SF, WithUpdateInterval, SDF] with HostHandling[CF, SF, WithUpdateInterval, SDF]
+    def withCaching(system: ActorSystem): Builder[CF, WithSystem, UF, SDF] with HostHandling[CF, WithSystem, UF, SDF]
+  }
+
+  trait HostHandling[CF <: WSClientFlag, SF <: SystemFlag, UF <: UpdateIntervalFlag, SDF <: StartDelayFlag]{self: Builder[CF, SF, UF, SDF] =>}
+
+  trait ZeroHosts[CF <: WSClientFlag, SF <: SystemFlag, UF <: UpdateIntervalFlag, SDF <: StartDelayFlag] extends HostHandling[CF, SF, UF, SDF]{self: Builder[CF, SF, UF, SDF] =>
+    def addHost(url: String, rels: LinkRelationType*): JsonHomeServiceBuilderOne[CF, SF, UF, SDF] with OneHost[CF, SF, UF, SDF] = {
+      val host = JsonHomeHost(url, rels)
+      JsonHomeServiceBuilderOne(host :: hosts, wsClient, system, updateInterval, startDelay)
+    }
+  }
+
+  trait HostsExist[CF <: WSClientFlag, SF <: SystemFlag, UF <: UpdateIntervalFlag, SDF <: StartDelayFlag] extends HostHandling[CF, SF, UF, SDF]{self: Builder[CF, SF, UF, SDF] =>
+    def addHost(url: String, rels: LinkRelationType*): JsonHomeServiceBuilderMany[CF, SF, UF, SDF] with ManyHosts[CF, SF, UF, SDF] = {
+      val host = JsonHomeHost(url, rels)
+      JsonHomeServiceBuilderMany(host :: hosts, wsClient, system, updateInterval, startDelay)
+    }
+  }
+
+  trait OneHost[CF <: WSClientFlag, SF <: SystemFlag, UF <: UpdateIntervalFlag, SDF <: StartDelayFlag] extends HostsExist[CF, SF, UF, SDF]{self: Builder[CF, SF, UF, SDF] =>}
+
+  trait ManyHosts[CF <: WSClientFlag, SF <: SystemFlag, UF <: UpdateIntervalFlag, SDF <: StartDelayFlag] extends HostsExist[CF, SF, UF, SDF]{self: Builder[CF, SF, UF, SDF] =>}
+
+
+
+  case class JsonHomeServiceBuilderZero[CF <: WSClientFlag, SF <: SystemFlag, UF <: UpdateIntervalFlag, SDF <: StartDelayFlag] private[jsonhomeclient](
                                      hosts: List[JsonHomeHost] = Nil,
                                      wsClient: Option[WSClient] = None,
                                      system: Option[ActorSystem] = None,
                                      updateInterval: Option[FiniteDuration] = None,
-                                     startDelay: Option[FiniteDuration] = None) {
+                                     startDelay: Option[FiniteDuration] = None) extends Builder[CF, SF, UF, SDF] with ZeroHosts[CF, SF, UF, SDF]{
 
-    def addHost(url: String, rels: LinkRelationType*) = {
-      val host = JsonHomeHost(url, rels)
-      this.copy[WithHost, CF, SF, UF, SDF](hosts = host :: hosts)
-    }
 
-    def withWSClient(client: WSClient) = this.copy[HF, WithWSClient, SF, UF, SDF](wsClient = Some(client))
+    def withWSClient(client: WSClient) = this.copy[WithWSClient, SF, UF, SDF](wsClient = Some(client))
 
-    def withStartDelay(delay: FiniteDuration) = this.copy[HF, CF, SF, UF, WithStartDelay](startDelay = Some(delay))
+    def withStartDelay(delay: FiniteDuration) = this.copy[CF, SF, UF, WithStartDelay](startDelay = Some(delay))
 
-    def withCaching(system: ActorSystem) = this.copy[HF, CF, WithSystem, UF, SDF](system = Some(system))
+    def withCaching(system: ActorSystem) = this.copy[CF, WithSystem, UF, SDF](system = Some(system))
 
-    def withUpdateInterval(updateInterval: FiniteDuration) = this.copy[HF, CF, SF, WithUpdateInterval, SDF](updateInterval = Some(updateInterval))
+    def withUpdateInterval(updateInterval: FiniteDuration) = this.copy[CF, SF, WithUpdateInterval, SDF](updateInterval = Some(updateInterval))
 
   }
 
+  case class JsonHomeServiceBuilderOne[CF <: WSClientFlag, SF <: SystemFlag, UF <: UpdateIntervalFlag, SDF <: StartDelayFlag] private[jsonhomeclient](
+                                                                                      hosts: List[JsonHomeHost] = Nil,
+                                                                                      wsClient: Option[WSClient] = None,
+                                                                                      system: Option[ActorSystem] = None,
+                                                                                      updateInterval: Option[FiniteDuration] = None,
+                                                                                      startDelay: Option[FiniteDuration] = None) extends Builder[CF, SF, UF, SDF] with OneHost[CF, SF, UF, SDF]{
+
+
+    def withWSClient(client: WSClient): JsonHomeServiceBuilderOne[WithWSClient, SF, UF, SDF] with OneHost[WithWSClient, SF, UF, SDF] = this.copy[WithWSClient, SF, UF, SDF](wsClient = Some(client))
+
+    def withStartDelay(delay: FiniteDuration): JsonHomeServiceBuilderOne[CF, SF, UF, WithStartDelay] with OneHost[CF, SF, UF, WithStartDelay] = this.copy[CF, SF, UF, WithStartDelay](startDelay = Some(delay))
+
+    def withCaching(system: ActorSystem): JsonHomeServiceBuilderOne[CF, WithSystem, UF, SDF] with OneHost[CF, WithSystem, UF, SDF] = this.copy[CF, WithSystem, UF, SDF](system = Some(system))
+
+    def withUpdateInterval(updateInterval: FiniteDuration): JsonHomeServiceBuilderOne[CF, SF, WithUpdateInterval, SDF] with OneHost[CF, SF, WithUpdateInterval, SDF] = this.copy[CF, SF, WithUpdateInterval, SDF](updateInterval = Some(updateInterval))
+
+  }
+
+  case class JsonHomeServiceBuilderMany[CF <: WSClientFlag, SF <: SystemFlag, UF <: UpdateIntervalFlag, SDF <: StartDelayFlag] private[jsonhomeclient](
+                                                                                     hosts: List[JsonHomeHost] = Nil,
+                                                                                     wsClient: Option[WSClient] = None,
+                                                                                     system: Option[ActorSystem] = None,
+                                                                                     updateInterval: Option[FiniteDuration] = None,
+                                                                                     startDelay: Option[FiniteDuration] = None) extends Builder[CF, SF, UF, SDF] with ManyHosts[CF, SF, UF, SDF]{
+
+
+    def withWSClient(client: WSClient): JsonHomeServiceBuilderMany[WithWSClient, SF, UF, SDF] with ManyHosts[WithWSClient, SF, UF, SDF]  = this.copy[WithWSClient, SF, UF, SDF](wsClient = Some(client))
+
+    def withStartDelay(delay: FiniteDuration): JsonHomeServiceBuilderMany[CF, SF, UF, WithStartDelay] with ManyHosts[CF, SF, UF, WithStartDelay] = this.copy[CF, SF, UF, WithStartDelay](startDelay = Some(delay))
+
+    def withCaching(system: ActorSystem): JsonHomeServiceBuilderMany[CF, WithSystem, UF, SDF] with ManyHosts[CF, WithSystem, UF, SDF]  = this.copy[CF, WithSystem, UF, SDF](system = Some(system))
+
+    def withUpdateInterval(updateInterval: FiniteDuration): JsonHomeServiceBuilderMany[CF, SF, WithUpdateInterval, SDF] with ManyHosts[CF, SF, WithUpdateInterval, SDF]  = this.copy[CF, SF, WithUpdateInterval, SDF](updateInterval = Some(updateInterval))
+
+  }
+
+
   object Builder {
-    def apply(): JsonHomeServiceBuilder[WithoutHost, WithoutWSClient, WithoutSystem, WithoutUpdateInterval, WithoutStartDelay] = JsonHomeServiceBuilder()
+    def apply(): Builder[WithoutWSClient, WithoutSystem, WithoutUpdateInterval, WithoutStartDelay] with ZeroHosts[WithoutWSClient, WithoutSystem, WithoutUpdateInterval, WithoutStartDelay] = JsonHomeServiceBuilderZero()
   }
 
   def apply(caches: Seq[JsonHomeCache]): JsonHomeService = {
