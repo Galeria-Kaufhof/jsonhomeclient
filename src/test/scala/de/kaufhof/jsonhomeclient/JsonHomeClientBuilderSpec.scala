@@ -1,49 +1,44 @@
 package de.kaufhof.jsonhomeclient
 
 import akka.actor.ActorSystem
-import de.kaufhof.jsonhomeclient.JsonHomeService.JsonHomeServiceBuilder._
+import de.kaufhof.jsonhomeclient.JsonHomeClient.JsonHomeClientBuilder._
 import play.api.libs.ws.WS
 import play.api.test.FakeApplication
 
 import scala.concurrent.duration._
 import scala.language.implicitConversions
 
+class JsonHomeClientBuilderSpec extends UnitSpec {
 
-/**
- *
- */
-class JsonHomeServiceBuilderSpec extends UnitSpec {
-  implicit val app = FakeApplication()
-  val system = ActorSystem(getClass.getSimpleName)
-
+  private implicit val app = FakeApplication()
+  private val system = ActorSystem(getClass.getSimpleName)
 
   override protected def afterAll(): Unit = {
     system.shutdown()
   }
 
-
-  describe("JsonHomeServiceBuilder") {
+  describe("JsonHomeClientBuilder") {
     it("should return a Builder with a JsonHomeHost") {
-      val builderWithOneHost = JsonHomeService.Builder().addHost("url", DirectLinkRelationType("rel"))
+      val builderWithOneHost = JsonHomeClient.Builder().addHost("url", DirectLinkRelationType("rel"))
       builderWithOneHost.hosts.size should be(1)
       builderWithOneHost.hosts.head.rels should be(Seq(DirectLinkRelationType("rel")))
     }
 
     it("should return a Builder with a WS Client") {
-      JsonHomeService.Builder().withWSClient(WS.client).wsClient should be(Some(WS.client))
+      JsonHomeClient.Builder().withWSClient(WS.client).wsClient should be(Some(WS.client))
     }
 
     it("should return a Builder with an ActorSystem and an update interval and start delay") {
 
-      val builder = JsonHomeService.Builder().withCaching(system).withUpdateInterval(1.minute).withStartDelay(1.minute)
+      val builder = JsonHomeClient.Builder().withCaching(system).withUpdateInterval(1.minute).withStartDelay(1.minute)
       builder.system should be(Some(system))
       builder.updateInterval should be(Some(1.minute))
       builder.startDelay should be(Some(1.minute))
     }
 
-    it("should return a JsonHomeService with user-defined durations when calling build()") {
+    it("should return a JsonHomeClient with user-defined durations when calling build()") {
 
-      val builder = JsonHomeService.Builder()
+      val builder = JsonHomeClient.Builder()
         .addHost("http://host", DirectLinkRelationType("rel"), TemplateLinkRelationType("rel2"))
         .addHost("https://host2", DirectLinkRelationType("rel3"))
         .withWSClient(WS.client)
@@ -61,9 +56,9 @@ class JsonHomeServiceBuilderSpec extends UnitSpec {
       service.cachesByHost.size should be(2)
     }
 
-    it("should return a JsonHomeService with a default update interval when calling build()") {
+    it("should return a JsonHomeClient with a default update interval when calling build()") {
 
-      val builder = JsonHomeService.Builder()
+      val builder = JsonHomeClient.Builder()
         .addHost("http://host", DirectLinkRelationType("rel"), TemplateLinkRelationType("rel2"))
         .addHost("https://host2", DirectLinkRelationType("rel3"))
         .withWSClient(WS.client)
@@ -81,9 +76,9 @@ class JsonHomeServiceBuilderSpec extends UnitSpec {
 
     }
 
-    it("should return a JsonHomeService with a default start delay when calling build()") {
+    it("should return a JsonHomeClient with a default start delay when calling build()") {
 
-      val builder = JsonHomeService.Builder()
+      val builder = JsonHomeClient.Builder()
         .addHost("http://host", DirectLinkRelationType("rel"), TemplateLinkRelationType("rel2"))
         .addHost("https://host2", DirectLinkRelationType("rel3"))
         .withWSClient(WS.client)
@@ -101,9 +96,9 @@ class JsonHomeServiceBuilderSpec extends UnitSpec {
 
     }
 
-    it("should return a JsonHomeService with default durations when calling build()") {
+    it("should return a JsonHomeClient with default durations when calling build()") {
 
-      val builder = JsonHomeService.Builder()
+      val builder = JsonHomeClient.Builder()
         .addHost("http://host", DirectLinkRelationType("rel"), TemplateLinkRelationType("rel2"))
         .addHost("https://host2", DirectLinkRelationType("rel3"))
         .withWSClient(WS.client)
@@ -119,16 +114,13 @@ class JsonHomeServiceBuilderSpec extends UnitSpec {
       service.cachesByHost.size should be(2)
     }
 
-    it("should return a JsonHomeClient when calling build() without a caching facility") {
-
-      val client = JsonHomeService.Builder()
-        .addHost("http://host", DirectLinkRelationType("rel"), TemplateLinkRelationType("rel2"))
+    it("should return an AsyncJsonHomeClient when calling build() without a caching facility") {
+      val client = JsonHomeClient.Builder()
         .withWSClient(WS.client)
         .build()
 
-      client.getClass should be(classOf[JsonHomeClient])
+      client should be (an[AsyncJsonHomeClient])
     }
-
 
   }
 }
