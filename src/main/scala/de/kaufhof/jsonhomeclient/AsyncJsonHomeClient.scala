@@ -69,9 +69,7 @@ class AsyncJsonHomeClient(ws: WSClient) {
 
 object AsyncJsonHomeClient {
 
-  case class HostDefinition(uri: URI, linkRelationType: LinkRelationType*)
-
-  case class Builder(wsClient: WSClient, hosts: Seq[HostDefinition] = Nil) {
+  case class Builder(wsClient: WSClient) {
     def build(): AsyncJsonHomeClient = new AsyncJsonHomeClient(wsClient)
   }
 

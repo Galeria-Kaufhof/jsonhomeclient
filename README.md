@@ -37,6 +37,8 @@ It is published to maven central for both scala 2.10 and 2.11.
 
 ## Usage
 
+The
+
 At first you setup the `JsonHomeService` for various hosts that provide json home documents.
 The first host serves a json home like the one shown above.
 
