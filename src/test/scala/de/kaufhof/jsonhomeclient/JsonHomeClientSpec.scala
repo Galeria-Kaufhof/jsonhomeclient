@@ -4,16 +4,16 @@ import org.scalatest.Matchers
 import org.mockito.Mockito._
 import org.mockito.Matchers._
 
-class JsonHomeServiceSpec extends UnitSpec {
+class JsonHomeClientSpec extends UnitSpec {
 
   val server1 = JsonHomeHost("http://host1", Nil)
   val server2 = JsonHomeHost("http://host2", Nil)
 
-  describe("JsonHomeService") {
+  describe("JsonHomeClient") {
     val cache1 = mockCache(server1, Some("/widgets"))
     val cache2 = mockCache(server2, Some("/widgets/{widget_id}/{more_para}"))
 
-    val jsonHomeService = JsonHomeService(Seq(cache1, cache2))
+    val jsonHomeService = JsonHomeClient(Seq(cache1, cache2))
 
     it("should ask the correct json home client for a resource") {
       val rel = DirectLinkRelationType("widgets")
@@ -39,7 +39,7 @@ class JsonHomeServiceSpec extends UnitSpec {
   }
 
   private def assertUrl(urlTemplate: String, params: Map[String, Any], expectedExpandedUrl: String) {
-    val jsonHomeService = JsonHomeService(Seq(mockCache(server2, Some(urlTemplate))))
+    val jsonHomeService = JsonHomeClient(Seq(mockCache(server2, Some(urlTemplate))))
     jsonHomeService.getUrl(server2, TemplateLinkRelationType("ignored_because_of_mock"), params) should be(Some(expectedExpandedUrl))
   }
 

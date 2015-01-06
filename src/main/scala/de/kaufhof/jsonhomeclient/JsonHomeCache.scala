@@ -16,6 +16,8 @@
  */
 package de.kaufhof.jsonhomeclient
 
+import play.api.libs.ws.WSClient
+
 import scala.language.postfixOps
 import scala.concurrent.ExecutionContext.Implicits.global
 import akka.actor.ActorSystem
@@ -23,7 +25,7 @@ import scala.util.control.NonFatal
 import scala.util.{Try, Failure, Success}
 import scala.concurrent.duration._
 import play.api.libs.json.JsValue
-import scala.concurrent.Await
+import scala.concurrent.{Future, Await}
 import play.api.Logger
 
 /**
@@ -32,7 +34,10 @@ import play.api.Logger
  *
  * @author <a href="mailto:martin.grotzke@inoio.de">Martin Grotzke</a>
  */
-class JsonHomeCache(client: JsonHomeClient, system: ActorSystem, updateInterval: FiniteDuration = 30 minutes,
+class JsonHomeCache(val host: JsonHomeHost,
+                    ws: WSClient,
+                    system: ActorSystem,
+                    updateInterval: FiniteDuration = 30 minutes,
                     initialTimeToWait: FiniteDuration = 10 seconds) {
 
   private val log = Logger(getClass)
@@ -41,14 +46,19 @@ class JsonHomeCache(client: JsonHomeClient, system: ActorSystem, updateInterval:
   private var relsToUrls: Option[Map[LinkRelationType, String]] = None
 
   system.scheduler.schedule(0 seconds, updateInterval) {
-    client.jsonHome().onComplete {
+    jsonHome().onComplete {
       case Success(jsonHome) => buildAndSetLinkRelationTypeMap(jsonHome)
       case Failure(t) => onFailure(t)
     }
   }
 
+  private[jsonhomeclient] def jsonHome(): Future[JsValue] = {
+    ws.url(host.jsonHomeUri.toString)
+      .withHeaders("Accept" -> "application/json-home").get().map(_.json)
+  }
+
   private def onFailure(t: Throwable): Unit = {
-    log.warn(s"An error has occured while loading json home from ${client.host}: $t")
+    log.warn(s"An error has occured while loading json home from $host: $t")
     // Set to some empty map so that getUrl does not always block for 10 seconds! This would lead to
     // a request time > 10 sec for each request.
     if(relsToUrls.isEmpty) {
@@ -57,8 +67,8 @@ class JsonHomeCache(client: JsonHomeClient, system: ActorSystem, updateInterval:
   }
 
   private def buildAndSetLinkRelationTypeMap(jsonHome: JsValue) {
-    log.debug(s"Got json home from ${client.host.jsonHomeUri}: $jsonHome}")
-    val map = client.host.rels.foldLeft(Map.empty[LinkRelationType, String]) { (res, rel) =>
+    log.debug(s"Got json home from ${host.jsonHomeUri}: $jsonHome}")
+    val map = host.rels.foldLeft(Map.empty[LinkRelationType, String]) { (res, rel) =>
       getLinkUrl(jsonHome, rel) match {
         case Some(url) => res + (rel -> url)
         case None => res
@@ -77,12 +87,10 @@ class JsonHomeCache(client: JsonHomeClient, system: ActorSystem, updateInterval:
     }
   }
 
-  def host: JsonHomeHost = client.host
-
   def getUrl(rel: LinkRelationType): Option[String] = {
     if (relsToUrls.isEmpty) {
       // eagerly load data from client if not here yet due to async loading from scheduler
-      Try(buildAndSetLinkRelationTypeMap(Await.result(client.jsonHome(), initialTimeToWait))).recover {
+      Try(buildAndSetLinkRelationTypeMap(Await.result(jsonHome(), initialTimeToWait))).recover {
         case NonFatal(e) => onFailure(e)
       }
     }

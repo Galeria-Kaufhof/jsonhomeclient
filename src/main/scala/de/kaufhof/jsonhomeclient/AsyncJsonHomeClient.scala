@@ -16,42 +16,61 @@
  */
 package de.kaufhof.jsonhomeclient
 
+import java.net.URI
+
 import com.damnhandy.uri.template.UriTemplate
+import org.slf4j.LoggerFactory
+import play.api.Logger
+import play.api.libs.json.JsValue
+import play.api.libs.ws.{WSClient, WS}
+
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
- * The json-home service allows to resolve urls (href/href-template) for a given json-home host and a given
- * link releation type.
+ * A json home client for various json home hosts.
  *
  * @author <a href="mailto:martin.grotzke@inoio.de">Martin Grotzke</a>
  */
-case class JsonHomeService(cachesByHost: Map[JsonHomeHost, JsonHomeCache]) {
+class AsyncJsonHomeClient(ws: WSClient) {
+
+  private val log = LoggerFactory.getLogger(getClass)
 
   /**
    * Determines the url (json-home "href") for the given json home host and the given direct link relation.
    */
-  def getUrl(host: JsonHomeHost, relation: DirectLinkRelationType): Option[String] = {
-    cachesByHost.get(host).flatMap(_.getUrl(relation))
+  def getUrl(host: JsonHomeHost, relation: DirectLinkRelationType): Future[Option[String]] = {
+    jsonHome(host).map(getLinkUrl(_, relation))
   }
 
   /**
    * Determines the url (json-home "href-template") for the given json home host and the given template link relation.
    * The href template variables are replaced using the provided params.
    */
-  def getUrl(host: JsonHomeHost, relation: TemplateLinkRelationType, params: Map[String, Any]): Option[String] = {
-    cachesByHost.get(host).flatMap(_.getUrl(relation)).map { hrefTemplate =>
+  def getUrl(host: JsonHomeHost, relation: TemplateLinkRelationType, params: Map[String, Any]): Future[Option[String]] = {
+    jsonHome(host).map(getLinkUrl(_, relation).map { hrefTemplate =>
       params.foldLeft(UriTemplate.fromTemplate(hrefTemplate))((res, param) => res.set(param._1, param._2)).expand()
+    })
+  }
+
+  private def jsonHome(host: JsonHomeHost): Future[JsValue] = {
+    ws.url(host.jsonHomeUri.toString)
+      .withHeaders("Accept" -> "application/json-home").get().map(_.json)
+  }
+
+  private def getLinkUrl(json: JsValue, linkRelation: LinkRelationType): Option[String] = {
+    linkRelation match {
+      case DirectLinkRelationType(_) => (json \ "resources" \ linkRelation.name \ "href").asOpt[String]
+      case TemplateLinkRelationType(_) => (json \ "resources" \ linkRelation.name \ "href-template").asOpt[String]
     }
   }
 
 }
 
-object JsonHomeService {
+object AsyncJsonHomeClient {
 
-  def apply(caches: Seq[JsonHomeCache]): JsonHomeService = {
-    val cachesByHost = caches.foldLeft(Map.empty[JsonHomeHost, JsonHomeCache]) { (res, cache) =>
-      res + (cache.host -> cache)
-    }
-    new JsonHomeService(cachesByHost)
+  case class Builder(wsClient: WSClient) {
+    def build(): AsyncJsonHomeClient = new AsyncJsonHomeClient(wsClient)
   }
 
 }
