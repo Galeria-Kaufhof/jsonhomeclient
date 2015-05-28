@@ -32,9 +32,9 @@ case class JsonHomeHost(uri: URI, jsonHomeUri: URI, rels: Seq[LinkRelationType])
 
 object JsonHomeHost {
 
-  val jsonHomePath = "/.well-known/home"
+  val jsonHomePath: String = "/.well-known/home"
 
-  def apply(hostURL: String, rels: Seq[LinkRelationType]): JsonHomeHost = {
+  def apply(hostURL: String, rels: Seq[LinkRelationType], jsonHomePath: String = jsonHomePath): JsonHomeHost = {
     val uri = new URI(hostURL)
     JsonHomeHost(uri, URI.create(uri + jsonHomePath), rels)
   }

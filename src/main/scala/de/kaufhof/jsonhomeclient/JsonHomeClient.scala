@@ -6,7 +6,7 @@
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,16 +33,22 @@ import play.api.libs.ws._
  *           in other apps it can be created via
  *           `new NingWSClient(new AsyncHttpClientConfig.Builder().build())` (remember
  *           to `close()` the client when the application is stopped).
- *
+ * @param defaultHeaders possibility to put headers from app-context
  * @author <a href="mailto:martin.grotzke@inoio.de">Martin Grotzke</a>
  */
-class JsonHomeClient(val host: JsonHomeHost,
-                     val ws: WSClient) {
 
-  private[jsonhomeclient] def jsonHome(): Future[JsValue] = {
-    ws.url(host.jsonHomeUri.toString)
-      .withHeaders("Accept" -> "application/json-home").get().map(_.json)
+class JsonHomeClient(val host: JsonHomeHost,
+                     val ws: WSClient,
+                     val defaultHeaders: Map[String, String] = Map("Accept" -> "application/json-home")) {
+
+  protected[jsonhomeclient] def jsonHome(): Future[JsValue] = {
+    configure(
+      ws.url(host.jsonHomeUri.toString)
+        .withHeaders(defaultHeaders.toSeq: _*)
+    ).get().map(_.json)
   }
+
+  protected def configure(requestHolder: WSRequestHolder): WSRequestHolder = requestHolder
 
 }
 
