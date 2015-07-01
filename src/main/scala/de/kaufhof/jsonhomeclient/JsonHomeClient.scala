@@ -16,12 +16,12 @@
  */
 package de.kaufhof.jsonhomeclient
 
-import scala.language.postfixOps
-
 import play.api.libs.json.JsValue
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.libs.ws._
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.language.postfixOps
 
 /**
  * The client to load a json-home document and extract relevant information.
@@ -48,7 +48,7 @@ class JsonHomeClient(val host: JsonHomeHost,
     ).get().map(_.json)
   }
 
-  protected def configure(requestHolder: WSRequestHolder): WSRequestHolder = requestHolder
+  protected def configure(requestHolder: WSRequest): WSRequest = requestHolder
 
 }
 
