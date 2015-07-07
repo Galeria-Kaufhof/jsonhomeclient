@@ -20,8 +20,8 @@ scalacOptions ++= Seq("-language:reflectiveCalls", "-feature", "-deprecation")
 libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "2.2.0" % "test",
   "org.mockito" % "mockito-core" % "1.9.5" % "test",
-  "com.typesafe.play" %% "play-test" % "2.3.0" % "test",
-  "com.typesafe.play" %% "play-ws" % "2.3.0",
+  "com.typesafe.play" %% "play-test" % "2.4.2" % "test",
+  "com.typesafe.play" %% "play-ws" % "2.4.2",
   "com.damnhandy" % "handy-uri-templates" % "2.0.1"
 )
 
