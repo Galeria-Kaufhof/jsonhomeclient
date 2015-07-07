@@ -73,23 +73,24 @@ class JsonHomeCacheSpec extends IntegrationSpec {
 
     it("should return None when json home not found from jsonHomeCache") {
       val server = JsonHomeHost("http://localhost:8001/this_server_and_doc_does_not_exist", Seq())
-      val cache = new JsonHomeCache(new JsonHomeClient(server, wsClient), actorSystem)
-      cache.getUrl(DirectLinkRelationType("http://spec.example.org/rels/artists")) should be (None)
+      closing(new JsonHomeCache(new JsonHomeClient(server, wsClient), actorSystem)) { cache =>
+        cache.getUrl(DirectLinkRelationType("http://spec.example.org/rels/artists")) should be (None)
+      }
     }
 
     it("should continuously reload json-home") {
       val relAlbums = DirectLinkRelationType("http://spec.example.org/rels/albums")
       val server = JsonHomeHost("http://localhost:8000", Seq(DirectLinkRelationType("http://spec.example.org/rels/artists"), relAlbums))
       val client = new JsonHomeClient(server, wsClient)
-      val cache = new JsonHomeCache(client, actorSystem, 20 milliseconds)
+      closing(new JsonHomeCache(client, actorSystem, 20 milliseconds)) { cache =>
 
-      eventually {
-        cache.getUrl(relAlbums) should be(None)
-      }
+        eventually {
+          cache.getUrl(relAlbums) should be(None)
+        }
 
-      // let the http server provide a different json-home
-      json = Json.parse(
-        """
+        // let the http server provide a different json-home
+        json = Json.parse(
+          """
           |{
           |  "resources": {
           |    "http://spec.example.org/rels/artists": {
@@ -100,10 +101,14 @@ class JsonHomeCacheSpec extends IntegrationSpec {
           |	   }
           |  }
           |}
-        """.stripMargin)
+        """.
+            stripMargin)
 
-      eventually {
-        cache.getUrl(relAlbums) should be(Some("/albums"))
+        eventually {
+        cache.
+          getUrl(relAlbums) should be(Some("/albums"))
+        }
+
       }
     }
 
@@ -115,9 +120,10 @@ class JsonHomeCacheSpec extends IntegrationSpec {
   }
 
   override def afterAll(configMap: ConfigMap) {
+    jsonHomeCache.shutdown()
+    actorSystem.shutdown()
     wsClient.close()
     httpServer.stop(0)
-    actorSystem.shutdown()
   }
 
   private def startServer[T](port: Int, context: String): HttpServer = {
@@ -136,6 +142,14 @@ class JsonHomeCacheSpec extends IntegrationSpec {
       val os = t.getResponseBody
       os.write(response.getBytes)
       os.close()
+    }
+  }
+
+  private def closing(cache: JsonHomeCache)(fun: JsonHomeCache => Unit): Unit = {
+    try {
+      fun(cache)
+    } finally {
+      cache.shutdown()
     }
   }
 

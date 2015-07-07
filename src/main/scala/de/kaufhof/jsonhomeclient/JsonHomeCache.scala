@@ -40,7 +40,7 @@ class JsonHomeCache(client: JsonHomeClient, system: ActorSystem, updateInterval:
   @volatile
   private var relsToUrls: Option[Map[LinkRelationType, String]] = None
 
-  system.scheduler.schedule(0 seconds, updateInterval) {
+  private val updateTask = system.scheduler.schedule(0 seconds, updateInterval) {
     client.jsonHome().onComplete {
       case Success(jsonHome) => buildAndSetLinkRelationTypeMap(jsonHome)
       case Failure(t) => onFailure(t)
@@ -87,6 +87,10 @@ class JsonHomeCache(client: JsonHomeClient, system: ActorSystem, updateInterval:
       }
     }
     relsToUrls.flatMap(_.get(rel))
+  }
+
+  def shutdown(): Unit = {
+    updateTask.cancel()
   }
 
 }
