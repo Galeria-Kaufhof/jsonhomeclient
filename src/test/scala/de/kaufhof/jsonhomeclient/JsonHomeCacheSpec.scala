@@ -116,6 +116,7 @@ class JsonHomeCacheSpec extends IntegrationSpec {
 
   override def afterAll(configMap: ConfigMap) {
     httpServer.stop(0)
+    actorSystem.shutdown()
   }
 
   private def startServer[T](port: Int, context: String): HttpServer = {
