@@ -115,6 +115,7 @@ class JsonHomeCacheSpec extends IntegrationSpec {
   }
 
   override def afterAll(configMap: ConfigMap) {
+    wsClient.close()
     httpServer.stop(0)
     actorSystem.shutdown()
   }
