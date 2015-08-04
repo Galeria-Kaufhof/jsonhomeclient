@@ -1,4 +1,4 @@
-# jsonhomeclient
+# json-home-client
 
 [![Build Status](https://travis-ci.org/Galeria-Kaufhof/jsonhomeclient.png?branch=master)](https://travis-ci.org/Galeria-Kaufhof/jsonhomeclient)
 
@@ -20,8 +20,8 @@ No-magic Scala client to consume [JSON home documents](http://tools.ietf.org/htm
 }
 ```
 
-The jsonhomeclient regularly loads json home documents from json home document providers, and caches them in memory.
-When your application retrieves some information from this jsonhomeclient, the cached json home documents are used so that
+The json-home-client regularly loads json home documents from json home document providers, and caches them in memory.
+When your application retrieves some information from this json-home-client, the cached json home documents are used so that
 there'll be no network roundtrip.
 
 This library was built for Play! Framework 2.4.x projects and uses [Play's WS client](https://www.playframework.com/documentation/2.4.x/ScalaWS)
@@ -31,7 +31,7 @@ If you're looking for the Play 2.3.x version check out the [play-2.3.x branch](h
 
 ## Installation
 
-You must add the jsonhomeclient to the dependencies of the build file, e.g. add to `build.sbt`:
+You must add the json-home-client to the dependencies of the build file, e.g. add to `build.sbt`:
 
     libraryDependencies += "de.kaufhof" %% "json-home-client" % "2.0.0"
 
