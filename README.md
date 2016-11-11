@@ -24,8 +24,8 @@ The json-home-client regularly loads json home documents from json home document
 When your application retrieves some information from this json-home-client, the cached json home documents are used so that
 there'll be no network roundtrip.
 
-This library was built for Play! Framework 2.4.x projects and uses [Play's WS client](https://www.playframework.com/documentation/2.4.x/ScalaWS)
-and [Play's JSON library](https://www.playframework.com/documentation/2.4.x/ScalaJson).
+This library was built for Play! Framework 2.5.x projects and uses [Play's WS client](https://www.playframework.com/documentation/2.5.x/ScalaWS)
+and [Play's JSON library](https://www.playframework.com/documentation/2.5.x/ScalaJson).
 
 If you're looking for the Play 2.3.x version check out the [play-2.3.x branch](https://github.com/Galeria-Kaufhof/jsonhomeclient/tree/play-2.3.x).
 
@@ -33,9 +33,9 @@ If you're looking for the Play 2.3.x version check out the [play-2.3.x branch](h
 
 You must add the json-home-client to the dependencies of the build file, e.g. add to `build.sbt`:
 
-    libraryDependencies += "de.kaufhof" %% "json-home-client" % "2.0.0"
+    libraryDependencies += "de.kaufhof" %% "json-home-client" % "2.1.0"
 
-It is published to maven central for both scala 2.10 and 2.11.
+It is published to maven central for 2.11.
 
 ## Usage
 
