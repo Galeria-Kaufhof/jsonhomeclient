@@ -11,17 +11,15 @@ licenses := Seq("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0.
 
 homepage := Some(url("https://github.com/Galeria-Kaufhof/jsonhomeclient"))
 
-scalaVersion := "2.11.6"
-
-crossScalaVersions := Seq("2.10.5", "2.11.6")
+scalaVersion := "2.11.8"
 
 scalacOptions ++= Seq("-language:reflectiveCalls", "-feature", "-deprecation")
 
 libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "2.2.0" % "test",
   "org.mockito" % "mockito-core" % "1.9.5" % "test",
-  "com.typesafe.play" %% "play-test" % "2.4.2" % "test",
-  "com.typesafe.play" %% "play-ws" % "2.4.2",
+  "com.typesafe.play" %% "play-test" % "2.5.9" % "test",
+  "com.typesafe.play" %% "play-ws" % "2.5.9",
   "com.damnhandy" % "handy-uri-templates" % "2.0.1"
 )
 

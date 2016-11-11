@@ -1,18 +1,23 @@
 package de.kaufhof.jsonhomeclient
 
-import com.ning.http.client.AsyncHttpClientConfig
-import play.api.libs.ws.ning.NingWSClient
+import java.net.InetSocketAddress
 
-import scala.language.postfixOps
-
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
+import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
+import org.asynchttpclient.DefaultAsyncHttpClientConfig
 import org.scalatest.ConfigMap
 import play.api.libs.json.Json
-import com.sun.net.httpserver.{HttpServer, HttpExchange, HttpHandler}
-import java.net.InetSocketAddress
+import play.api.libs.ws.ahc.AhcWSClient
+
 import scala.concurrent.duration._
-import akka.actor.ActorSystem
+import scala.language.postfixOps
 
 class JsonHomeCacheSpec extends IntegrationSpec {
+  implicit lazy val actorSystem = ActorSystem(getClass.getSimpleName)
+
+  implicit lazy val mat = ActorMaterializer()
+
 
   private var json = Json.parse(
     """
@@ -43,15 +48,14 @@ class JsonHomeCacheSpec extends IntegrationSpec {
       |  }
       |}
     """.stripMargin)
-
   private val server = JsonHomeHost("http://localhost:8000", Seq(
     DirectLinkRelationType("http://spec.example.org/rels/artists"),
     TemplateLinkRelationType("http://spec.example.org/rels/artist"),
     TemplateLinkRelationType("http://spec.example.org/rels/artistWithOptionalParams")
   ))
-  private lazy val wsClient = new NingWSClient(new AsyncHttpClientConfig.Builder().build())
+  private lazy val wsClient = new AhcWSClient(new DefaultAsyncHttpClientConfig.Builder().build())
   private lazy val client = new JsonHomeClient(server, wsClient)
-  private lazy val actorSystem = ActorSystem(getClass.getSimpleName)
+
   private lazy val jsonHomeCache = new JsonHomeCache(client, actorSystem)
   private var httpServer: HttpServer = _
 
@@ -121,7 +125,7 @@ class JsonHomeCacheSpec extends IntegrationSpec {
 
   override def afterAll(configMap: ConfigMap) {
     jsonHomeCache.shutdown()
-    actorSystem.shutdown()
+    actorSystem.terminate()
     wsClient.close()
     httpServer.stop(0)
   }
