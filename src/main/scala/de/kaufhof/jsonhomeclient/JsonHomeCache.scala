@@ -33,14 +33,14 @@ import play.api.Logger
  * @author <a href="mailto:martin.grotzke@inoio.de">Martin Grotzke</a>
  */
 class JsonHomeCache(client: JsonHomeClient, system: ActorSystem, updateInterval: FiniteDuration = 30 minutes,
-                    initialTimeToWait: FiniteDuration = 10 seconds) {
+                    timeoutAfter: FiniteDuration = 10 seconds, initialDelay: FiniteDuration = 0.seconds) {
 
   private val log = Logger(getClass)
 
   @volatile
   private var relsToUrls: Option[Map[LinkRelationType, String]] = None
 
-  private val updateTask = system.scheduler.schedule(0 seconds, updateInterval) {
+  private val updateTask = system.scheduler.schedule(initialDelay, updateInterval) {
     client.jsonHome().onComplete {
       case Success(jsonHome) => buildAndSetLinkRelationTypeMap(jsonHome)
       case Failure(t) => onFailure(t)
@@ -82,7 +82,7 @@ class JsonHomeCache(client: JsonHomeClient, system: ActorSystem, updateInterval:
   def getUrl(rel: LinkRelationType): Option[String] = {
     if (relsToUrls.isEmpty) {
       // eagerly load data from client if not here yet due to async loading from scheduler
-      Try(buildAndSetLinkRelationTypeMap(Await.result(client.jsonHome(), initialTimeToWait))).recover {
+      Try(buildAndSetLinkRelationTypeMap(Await.result(client.jsonHome(), timeoutAfter))).recover {
         case NonFatal(e) => onFailure(e)
       }
     }
