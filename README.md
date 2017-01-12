@@ -87,6 +87,14 @@ jsonHomeService.getUrl(
 ) == Some("/artists/acdc")
 ```
 
+## Release
+
+```
+sbt
+
+sbt Release
+```
+
 ## License
 
 The license is Apache 2.0, see LICENSE.

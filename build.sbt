@@ -1,11 +1,10 @@
+import ReleaseTransformations._
 
 name := "json-home-client"
 
 description := "Scala client to consume JSON home documents"
 
 organization := "de.kaufhof"
-
-version := "2.1.0"
 
 licenses := Seq("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0.html"))
 
@@ -18,8 +17,8 @@ scalacOptions ++= Seq("-language:reflectiveCalls", "-feature", "-deprecation")
 libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "2.2.0" % "test",
   "org.mockito" % "mockito-core" % "1.9.5" % "test",
-  "com.typesafe.play" %% "play-test" % "2.5.9" % "test",
-  "com.typesafe.play" %% "play-ws" % "2.5.9",
+  "com.typesafe.play" %% "play-test" % "2.5.10" % "test",
+  "com.typesafe.play" %% "play-ws" % "2.5.10",
   "com.damnhandy" % "handy-uri-templates" % "2.0.1"
 )
 
@@ -69,3 +68,18 @@ pomExtra := (
         <url>https://github.com/justjoheinz</url>
       </developer>
     </developers>)
+
+releaseProcess := Seq[ReleaseStep](
+  checkSnapshotDependencies,
+  inquireVersions,
+  runClean,
+  runTest,
+  setReleaseVersion,
+  commitReleaseVersion,
+  tagRelease,
+  ReleaseStep(action = Command.process("publishSigned", _)),
+  setNextVersion,
+  commitNextVersion,
+  ReleaseStep(action = Command.process("sonatypeReleaseAll", _)),
+  pushChanges
+)
