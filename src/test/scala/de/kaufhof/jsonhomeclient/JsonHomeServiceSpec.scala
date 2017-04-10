@@ -1,8 +1,7 @@
 package de.kaufhof.jsonhomeclient
 
-import org.scalatest.Matchers
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
-import org.mockito.Matchers._
 
 class JsonHomeServiceSpec extends UnitSpec {
 
