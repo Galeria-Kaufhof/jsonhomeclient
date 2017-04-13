@@ -5,11 +5,9 @@ import java.net.InetSocketAddress
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
-import org.asynchttpclient.DefaultAsyncHttpClientConfig
-import org.scalatest.ConfigMap
 import play.api.libs.json.Json
-import play.api.libs.ws.ahc.AhcWSClient
 
+import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
@@ -48,15 +46,15 @@ class JsonHomeCacheSpec extends IntegrationSpec {
       |  }
       |}
     """.stripMargin)
+
   private val server = JsonHomeHost("http://localhost:8000", Seq(
     DirectLinkRelationType("http://spec.example.org/rels/artists"),
     TemplateLinkRelationType("http://spec.example.org/rels/artist"),
     TemplateLinkRelationType("http://spec.example.org/rels/artistWithOptionalParams")
   ))
-  private lazy val wsClient = new AhcWSClient(new DefaultAsyncHttpClientConfig.Builder().build())
-  private lazy val client = new JsonHomeClient(server, wsClient)
+  private lazy val client = new JsonHomeClient(server)
 
-  private lazy val jsonHomeCache = new JsonHomeCache(client, actorSystem)
+  private lazy val jsonHomeCache = new JsonHomeCache(client)
   private var httpServer: HttpServer = _
 
   describe("JsonHomeCache") {
@@ -77,7 +75,7 @@ class JsonHomeCacheSpec extends IntegrationSpec {
 
     it("should return None when json home not found from jsonHomeCache") {
       val server = JsonHomeHost("http://localhost:8001/this_server_and_doc_does_not_exist", Seq())
-      closing(new JsonHomeCache(new JsonHomeClient(server, wsClient), actorSystem)) { cache =>
+      closing(new JsonHomeCache(new JsonHomeClient(server))) { cache =>
         cache.getUrl(DirectLinkRelationType("http://spec.example.org/rels/artists")) should be (None)
       }
     }
@@ -85,8 +83,8 @@ class JsonHomeCacheSpec extends IntegrationSpec {
     it("should continuously reload json-home") {
       val relAlbums = DirectLinkRelationType("http://spec.example.org/rels/albums")
       val server = JsonHomeHost("http://localhost:8000", Seq(DirectLinkRelationType("http://spec.example.org/rels/artists"), relAlbums))
-      val client = new JsonHomeClient(server, wsClient)
-      closing(new JsonHomeCache(client, actorSystem, 20 milliseconds)) { cache =>
+      val client = new JsonHomeClient(server)
+      closing(new JsonHomeCache(client, 20 milliseconds)) { cache =>
 
         eventually {
           cache.getUrl(relAlbums) should be(None)
@@ -119,14 +117,13 @@ class JsonHomeCacheSpec extends IntegrationSpec {
   }
 
 
-  override def beforeAll(configMap: ConfigMap) {
+  override def beforeAll() {
     httpServer = startServer(8000, JsonHomeHost.jsonHomePath)
   }
 
-  override def afterAll(configMap: ConfigMap) {
+  override def afterAll() {
     jsonHomeCache.shutdown()
-    actorSystem.terminate()
-    wsClient.close()
+    Await.result(actorSystem.terminate(), 5 seconds)
     httpServer.stop(0)
   }
 

@@ -16,31 +16,30 @@
  */
 package de.kaufhof.jsonhomeclient
 
-import scala.language.postfixOps
-import scala.concurrent.ExecutionContext.Implicits.global
-import akka.actor.ActorSystem
-import scala.util.control.NonFatal
-import scala.util.{Try, Failure, Success}
-import scala.concurrent.duration._
+import org.slf4j.LoggerFactory
 import play.api.libs.json.JsValue
+
 import scala.concurrent.Await
-import play.api.Logger
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
+import scala.language.postfixOps
+import scala.util.control.NonFatal
+import scala.util.{Failure, Success, Try}
 
 /**
  * A cache that regularly reloads a json-home document, so that queries on the json-home document are
  * performed in memory and do not cause any I/O.
  *
- * @author <a href="mailto:martin.grotzke@inoio.de">Martin Grotzke</a>
  */
-class JsonHomeCache(client: JsonHomeClient, system: ActorSystem, updateInterval: FiniteDuration = 30 minutes,
+class JsonHomeCache(client: JsonHomeClient, updateInterval: FiniteDuration = 30 minutes,
                     timeoutAfter: FiniteDuration = 10 seconds, initialDelay: FiniteDuration = 0.seconds) {
 
-  private val log = Logger(getClass)
+  private val log = LoggerFactory.getLogger(getClass)
 
   @volatile
   private var relsToUrls: Option[Map[LinkRelationType, String]] = None
 
-  private val updateTask = system.scheduler.schedule(initialDelay, updateInterval) {
+  private val updateTask = client.system.scheduler.schedule(initialDelay, updateInterval) {
     client.jsonHome().onComplete {
       case Success(jsonHome) => buildAndSetLinkRelationTypeMap(jsonHome)
       case Failure(t) => onFailure(t)
