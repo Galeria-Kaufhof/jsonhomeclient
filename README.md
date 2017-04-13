@@ -33,7 +33,7 @@ If you're looking for the Play 2.3.x version check out the [play-2.3.x branch](h
 
 You must add the json-home-client to the dependencies of the build file, e.g. add to `build.sbt`:
 
-    libraryDependencies += "de.kaufhof" %% "json-home-client" % "2.2.0"
+    libraryDependencies += "de.kaufhof" %% "json-home-client" % "3.0.0"
 
 It is published to maven central for 2.11.
 
