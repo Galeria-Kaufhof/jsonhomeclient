@@ -5,27 +5,29 @@ description := "Scala client to consume JSON home documents"
 
 organization := "de.kaufhof"
 
-version := "2.2.0"
+version := "2.1.0"
 
 licenses := Seq("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0.html"))
 
 homepage := Some(url("https://github.com/Galeria-Kaufhof/jsonhomeclient"))
 
-scalaVersion := "2.11.8"
+scalaVersion := "2.11.9"
 
 scalacOptions ++= Seq("-language:reflectiveCalls", "-feature", "-deprecation")
 
 libraryDependencies ++= Seq(
-  "org.scalatest" %% "scalatest" % "2.2.0" % "test",
-  "org.mockito" % "mockito-core" % "1.9.5" % "test",
-  "com.typesafe.play" %% "play-test" % "2.5.9" % "test",
-  "com.typesafe.play" %% "play-ws" % "2.5.9",
-  "com.damnhandy" % "handy-uri-templates" % "2.0.1"
+  "org.scalatest" %% "scalatest" % "3.0.1" % "test",
+  "org.mockito" % "mockito-core" % "2.7.20" % "test",
+  "de.heikoseeberger" %% "akka-http-play-json" % "1.15.0",
+  "com.typesafe.akka" %% "akka-http" % "10.0.5",
+  "com.typesafe.play" %% "play-json" % "2.6.0-M6",
+  "ch.qos.logback" % "logback-core" % "1.2.2",
+  "ch.qos.logback" % "logback-classic" % "1.2.2",
+  "org.slf4j" % "slf4j-api" % "1.7.25",
+  "com.damnhandy" % "handy-uri-templates" % "2.1.6"
 )
 
 resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
-
-net.virtualvoid.sbt.graph.Plugin.graphSettings
 
 // Publish settings
 publishTo := {
