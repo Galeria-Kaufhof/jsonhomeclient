@@ -1,3 +1,4 @@
+import ReleaseTransformations._
 
 name := "json-home-client"
 
@@ -71,3 +72,18 @@ pomExtra := (
         <url>https://github.com/justjoheinz</url>
       </developer>
     </developers>)
+
+releaseProcess := Seq[ReleaseStep](
+  checkSnapshotDependencies,
+  inquireVersions,
+  runClean,
+  runTest,
+  setReleaseVersion,
+  commitReleaseVersion,
+  tagRelease,
+  ReleaseStep(action = Command.process("publishSigned", _)),
+  setNextVersion,
+  commitNextVersion,
+  ReleaseStep(action = Command.process("sonatypeReleaseAll", _)),
+  pushChanges
+)
