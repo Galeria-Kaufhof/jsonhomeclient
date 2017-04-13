@@ -54,17 +54,18 @@ val host1 = JsonHomeHost("http://some.host", Seq(
   TemplateLinkRelationType("http://spec.example.org/rels/artist")
 ))
 
-// Create the client, it loads the json home doc from the host (using Play's WSClient for http)
-// In a non-Play app, the WSClient can be created via `new NingWSClient(new AsyncHttpClientConfig.Builder().build())`,
-// in this setup you should also `close()` the WSClient when the app is stopped.
-val client1 = new JsonHomeClient(host1, WS.client)
+// Create the client, it loads the json home doc from the host
+//Make sure to shutdown the ActorSystem after usage
+implicit val system = ActorSystem()
+implicit val materializer = ActorMaterializer()
+val client1 = new JsonHomeClient(host1)
 
 // Create the cache, it will regularly (using the Akka scheduler) load json home doc
 // using the client. The initialTimeToWait is used for requests when the schedule did not yet
 // kick in (might happen e.g. in tests) so that the json home doc was not yet requested/loaded.
 // In this case the json home doc is directly loaded from the client and the cache will wait for
 // the result using the given `initialTimeToWait`.
-val cache1 = new JsonHomeCache(client1, Akka.system, updateInterval = 5 minutes, initialTimeToWait = 10 seconds)
+val cache1 = new JsonHomeCache(client1, updateInterval = 5 minutes, initialTimeToWait = 10 seconds)
 
 // The json home service, the interface for applications, set up with several json home caches
 val jsonHomeService = JsonHomeService(Seq(cache1, cache2, ...))
