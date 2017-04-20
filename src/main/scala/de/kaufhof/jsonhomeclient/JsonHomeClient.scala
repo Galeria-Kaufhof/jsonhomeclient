@@ -24,7 +24,7 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.settings.{ClientConnectionSettings, ConnectionPoolSettings, ParserSettings}
 import akka.http.scaladsl.unmarshalling.Unmarshal
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
 import play.api.libs.json._
 
@@ -40,11 +40,11 @@ import scala.language.postfixOps
   * @param host           the json home host to load the home document from
   * @param defaultHeaders possibility to put headers from app-context
   * @param system A [[akka.actor.ActorSystem]] required by akka-http and for determining the [[scala.concurrent.ExecutionContextExecutor]]
-  * @param materializer A [[ActorMaterializer]] required by akka-http
+  * @param materializer A [[Materializer]] required by akka-http
   */
 
 class JsonHomeClient(val host: JsonHomeHost,
-                     val defaultHeaders: Map[String, String] = Map("Accept" -> "application/json-home"))(implicit val system: ActorSystem, materializer: ActorMaterializer) extends PlayJsonSupport {
+                     val defaultHeaders: Map[String, String] = Map("Accept" -> "application/json-home"))(implicit val system: ActorSystem, materializer: Materializer) extends PlayJsonSupport {
 
   private implicit val executionContext = system.dispatcher
   private val headers = defaultHeaders.collect { case (k, v) => RawHeader(k, v) }.to[Seq]
