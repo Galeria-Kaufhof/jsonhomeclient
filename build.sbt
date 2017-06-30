@@ -12,18 +12,19 @@ licenses := Seq("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0.
 
 homepage := Some(url("https://github.com/Galeria-Kaufhof/jsonhomeclient"))
 
-scalaVersion := "2.11.9"
+scalaVersion := "2.12.2"
+crossScalaVersions := Seq("2.11.11","2.12.2")
 
 scalacOptions ++= Seq("-language:reflectiveCalls", "-feature", "-deprecation")
 
 libraryDependencies ++= Seq(
-  "org.scalatest" %% "scalatest" % "3.0.1" % "test",
-  "org.mockito" % "mockito-core" % "2.7.20" % "test",
-  "de.heikoseeberger" %% "akka-http-play-json" % "1.15.0",
-  "com.typesafe.akka" %% "akka-http" % "10.0.5",
-  "com.typesafe.play" %% "play-json" % "2.6.0-M6",
-  "ch.qos.logback" % "logback-core" % "1.2.2",
-  "ch.qos.logback" % "logback-classic" % "1.2.2",
+  "org.scalatest" %% "scalatest" % "3.0.3" % "test",
+  "org.mockito" % "mockito-core" % "2.7.22" % "test",
+  "de.heikoseeberger" %% "akka-http-play-json" % "1.17.0",
+  "com.typesafe.akka" %% "akka-http" % "10.0.9",
+  "com.typesafe.play" %% "play-json" % "2.6.0",
+  "ch.qos.logback" % "logback-core" % "1.2.3",
+  "ch.qos.logback" % "logback-classic" % "1.2.3",
   "org.slf4j" % "slf4j-api" % "1.7.25",
   "com.damnhandy" % "handy-uri-templates" % "2.1.6"
 )
