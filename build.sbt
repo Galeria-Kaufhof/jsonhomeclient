@@ -12,17 +12,17 @@ licenses := Seq("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0.
 
 homepage := Some(url("https://github.com/Galeria-Kaufhof/jsonhomeclient"))
 
-scalaVersion := "2.12.2"
-crossScalaVersions := Seq("2.11.11","2.12.2")
+scalaVersion := "2.12.4"
+crossScalaVersions := Seq("2.11.12","2.12.4")
 
 scalacOptions ++= Seq("-language:reflectiveCalls", "-feature", "-deprecation")
 
 libraryDependencies ++= Seq(
-  "org.scalatest" %% "scalatest" % "3.0.3" % "test",
-  "org.mockito" % "mockito-core" % "2.7.22" % "test",
-  "de.heikoseeberger" %% "akka-http-play-json" % "1.17.0",
-  "com.typesafe.akka" %% "akka-http" % "10.0.9",
-  "com.typesafe.play" %% "play-json" % "2.6.0",
+  "org.scalatest" %% "scalatest" % "3.0.5" % "test",
+  "org.mockito" % "mockito-core" % "2.13.0" % "test",
+  "de.heikoseeberger" %% "akka-http-play-json" % "1.19.0",
+  "com.typesafe.akka" %% "akka-http" % "10.0.11",
+  "com.typesafe.play" %% "play-json" % "2.6.8",
   "ch.qos.logback" % "logback-core" % "1.2.3",
   "ch.qos.logback" % "logback-classic" % "1.2.3",
   "org.slf4j" % "slf4j-api" % "1.7.25",
@@ -82,9 +82,9 @@ releaseProcess := Seq[ReleaseStep](
   setReleaseVersion,
   commitReleaseVersion,
   tagRelease,
-  ReleaseStep(action = Command.process("publishSigned", _)),
+  releaseStepCommand("publishSigned"),
   setNextVersion,
   commitNextVersion,
-  ReleaseStep(action = Command.process("sonatypeReleaseAll", _)),
+  releaseStepCommand("sonatypeReleaseAll"),
   pushChanges
 )
