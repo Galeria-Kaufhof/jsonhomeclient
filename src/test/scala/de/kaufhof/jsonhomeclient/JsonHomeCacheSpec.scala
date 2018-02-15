@@ -12,9 +12,9 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 
 class JsonHomeCacheSpec extends IntegrationSpec {
-  implicit lazy val actorSystem = ActorSystem(getClass.getSimpleName)
+  implicit lazy val actorSystem: ActorSystem = ActorSystem(getClass.getSimpleName)
 
-  implicit lazy val mat = ActorMaterializer()
+  implicit lazy val mat: ActorMaterializer = ActorMaterializer()
 
 
   private var json = Json.parse(
