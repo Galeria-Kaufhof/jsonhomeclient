@@ -47,7 +47,7 @@ class JsonHomeCache(client: JsonHomeClient, updateInterval: FiniteDuration = 30 
   }
 
   private def onFailure(t: Throwable): Unit = {
-    log.warn(s"An error has occured while loading json home from ${client.host}: $t")
+    log.warn(s"An error has occurred while loading json home from ${client.host}", t)
     // Set to some empty map so that getUrl does not always block for 10 seconds! This would lead to
     // a request time > 10 sec for each request.
     if (relsToUrls.isEmpty) {
