@@ -39,8 +39,8 @@ import scala.language.postfixOps
   *
   * @param host           the json home host to load the home document from
   * @param defaultHeaders possibility to put headers from app-context
-  * @param system A [[akka.actor.ActorSystem]] required by akka-http and for determining the [[scala.concurrent.ExecutionContextExecutor]]
-  * @param materializer A [[Materializer]] required by akka-http
+  * @param system         A [[akka.actor.ActorSystem]] required by akka-http and for determining the [[scala.concurrent.ExecutionContextExecutor]]
+  * @param materializer   A [[Materializer]] required by akka-http
   */
 
 class JsonHomeClient(val host: JsonHomeHost,
@@ -50,6 +50,7 @@ class JsonHomeClient(val host: JsonHomeHost,
   private val headers = defaultHeaders.collect { case (k, v) => RawHeader(k, v) }.to[Seq]
 
   private def `application/json-home`: WithFixedCharset = MediaType.applicationWithFixedCharset("json-home", HttpCharsets.`UTF-8`, "json-home")
+
   private val parserSettings = ParserSettings(system).withCustomMediaTypes(`application/json-home`)
   private val clientConSettings = ClientConnectionSettings(system).withParserSettings(parserSettings)
   private val clientSettings = ConnectionPoolSettings(system).withConnectionSettings(clientConSettings)

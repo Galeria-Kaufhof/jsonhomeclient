@@ -76,7 +76,7 @@ class JsonHomeCacheSpec extends IntegrationSpec {
     it("should return None when json home not found from jsonHomeCache") {
       val server = JsonHomeHost("http://localhost:8001/this_server_and_doc_does_not_exist", Seq())
       closing(new JsonHomeCache(new JsonHomeClient(server))) { cache =>
-        cache.getUrl(DirectLinkRelationType("http://spec.example.org/rels/artists")) should be (None)
+        cache.getUrl(DirectLinkRelationType("http://spec.example.org/rels/artists")) should be(None)
       }
     }
 
@@ -93,22 +93,22 @@ class JsonHomeCacheSpec extends IntegrationSpec {
         // let the http server provide a different json-home
         json = Json.parse(
           """
-          |{
-          |  "resources": {
-          |    "http://spec.example.org/rels/artists": {
-          |	     "href": "/artists"
-          |	   },
-          |    "http://spec.example.org/rels/albums": {
-          |	     "href": "/albums"
-          |	   }
-          |  }
-          |}
-        """.
+            |{
+            |  "resources": {
+            |    "http://spec.example.org/rels/artists": {
+            |	     "href": "/artists"
+            |	   },
+            |    "http://spec.example.org/rels/albums": {
+            |	     "href": "/albums"
+            |	   }
+            |  }
+            |}
+          """.
             stripMargin)
 
         eventually {
-        cache.
-          getUrl(relAlbums) should be(Some("/albums"))
+          cache.
+            getUrl(relAlbums) should be(Some("/albums"))
         }
 
       }
