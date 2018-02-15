@@ -32,7 +32,8 @@ import scala.util.{Failure, Success, Try}
   *
   */
 class JsonHomeCache(client: JsonHomeClient, updateInterval: FiniteDuration = 30 minutes,
-                    timeoutAfter: FiniteDuration = 10 seconds, initialDelay: FiniteDuration = 0.seconds) {
+                    timeoutAfter: FiniteDuration = 10 seconds, initialDelay: FiniteDuration = 0 seconds,
+                    logVerbose: Boolean = true) {
 
   private val log = LoggerFactory.getLogger(getClass)
 
@@ -56,7 +57,9 @@ class JsonHomeCache(client: JsonHomeClient, updateInterval: FiniteDuration = 30 
   }
 
   private def buildAndSetLinkRelationTypeMap(jsonHome: JsValue) {
-    log.debug(s"Got json home from ${client.host.jsonHomeUri}: $jsonHome}")
+    val uri = client.host.jsonHomeUri
+    val payload = if (logVerbose) s":\n$jsonHome" else ""
+    log.debug(s"Got json home from $uri$payload")
     val map = client.host.rels.foldLeft(Map.empty[LinkRelationType, String]) { (res, rel) =>
       getLinkUrl(jsonHome, rel) match {
         case Some(url) => res + (rel -> url)
