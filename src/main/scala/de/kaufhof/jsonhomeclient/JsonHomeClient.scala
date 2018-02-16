@@ -29,7 +29,7 @@ import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
 import play.api.libs.json._
 
 import scala.collection.immutable.Seq
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.language.postfixOps
 
 
@@ -39,17 +39,18 @@ import scala.language.postfixOps
   *
   * @param host           the json home host to load the home document from
   * @param defaultHeaders possibility to put headers from app-context
-  * @param system A [[akka.actor.ActorSystem]] required by akka-http and for determining the [[scala.concurrent.ExecutionContextExecutor]]
-  * @param materializer A [[Materializer]] required by akka-http
+  * @param system         A [[akka.actor.ActorSystem]] required by akka-http and for determining the [[scala.concurrent.ExecutionContextExecutor]]
+  * @param materializer   A [[Materializer]] required by akka-http
   */
 
 class JsonHomeClient(val host: JsonHomeHost,
                      val defaultHeaders: Map[String, String] = Map("Accept" -> "application/json-home"))(implicit val system: ActorSystem, materializer: Materializer) extends PlayJsonSupport {
 
-  private implicit val executionContext = system.dispatcher
+  private implicit val executionContext: ExecutionContextExecutor = system.dispatcher
   private val headers = defaultHeaders.collect { case (k, v) => RawHeader(k, v) }.to[Seq]
 
   private def `application/json-home`: WithFixedCharset = MediaType.applicationWithFixedCharset("json-home", HttpCharsets.`UTF-8`, "json-home")
+
   private val parserSettings = ParserSettings(system).withCustomMediaTypes(`application/json-home`)
   private val clientConSettings = ClientConnectionSettings(system).withParserSettings(parserSettings)
   private val clientSettings = ConnectionPoolSettings(system).withConnectionSettings(clientConSettings)
