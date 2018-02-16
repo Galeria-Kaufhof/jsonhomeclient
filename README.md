@@ -30,7 +30,7 @@ This library uses [Play's JSON library](https://www.playframework.com/documentat
 
 You must add the json-home-client to the dependencies of the build file, e.g. add to `build.sbt`:
 
-    libraryDependencies += "de.kaufhof" %% "json-home-client" % "3.0.2"
+    libraryDependencies += "de.kaufhof" %% "json-home-client" % "3.0.3"
 
 It is published to sonatype nexus for scala 2.11 and 2.12.
 
